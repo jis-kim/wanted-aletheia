@@ -19,8 +19,18 @@
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "paths": {
-      "@app/database": ["libs/database/src"],
-      "@app/database/*": ["libs/database/src/*"]
+      "@app/database": [
+        "libs/database/src"
+      ],
+      "@app/database/*": [
+        "libs/database/src/*"
+      ],
+      "@app/logger": [
+        "libs/logger/src"
+      ],
+      "@app/logger/*": [
+        "libs/logger/src/*"
+      ]
     }
   }
 }

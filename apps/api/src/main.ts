@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { ApiModule } from './api.module';
+import { LoggerService } from '@app/logger';
+import { LoggerInterceptor } from '@app/logger/logger.interceptor';
 
 const config = new DocumentBuilder()
   .setTitle('Aletheia API')
@@ -11,10 +13,16 @@ const config = new DocumentBuilder()
   .build();
 
 async function bootstrap() {
-  const app = await NestFactory.create(ApiModule);
+  const app = await NestFactory.create(ApiModule, {
+    logger: new LoggerService(),
+  });
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  const logger = app.get(LoggerService);
+  app.useLogger(logger);
+  app.useGlobalInterceptors(new LoggerInterceptor(logger));
 
   await app.listen(3000);
 }
