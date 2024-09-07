@@ -1,5 +1,5 @@
 {
-  "name": "api",
+  "name": "database",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,7 +12,6 @@
   "dependencies": {
     "@nestjs/config": "^3.2.3",
     "@nestjs/typeorm": "^10.0.2",
-    "mysql2": "^3.11.0",
-    "typeorm": "^0.3.20"
+    "joi": "^17.13.3"
   }
 }

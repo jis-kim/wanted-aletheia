@@ -1,6 +1,9 @@
 # Mac OS
 .DS_Store
 
+# Editor
+.vscode
+
 # Logs
 logs
 *.log
@@ -131,4 +134,3 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-
