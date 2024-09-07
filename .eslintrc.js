@@ -17,10 +17,8 @@ module.exports = {
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/naming-convention': [
       'error',
-      { selector: 'variableLike', format: ['camelCase', 'UPPER_CASE'] },
       { selector: 'property', format: ['camelCase'] },
       { selector: 'class', format: ['PascalCase'] },
       { selector: 'classMethod', format: ['camelCase'] },
@@ -47,33 +45,8 @@ module.exports = {
         //그룹은 기본 ["builtin", "external", "parent", "sibling", "index"] 순서입니다. 변경 가능
       },
     ],
+    'import/no-unresolved': 'off',
   },
-  overrides: [
-    {
-      files: ['**/*.constants.ts'],
-      rules: {
-        '@typescript-eslint/naming-convention': [
-          'error',
-          {
-            selector: 'variable',
-            format: ['camelCase', 'UPPER_CASE'],
-          },
-        ],
-      },
-    },
-    {
-      files: ['**/*.decorator.ts'],
-      rules: {
-        '@typescript-eslint/naming-convention': [
-          'error',
-          {
-            selector: 'variable',
-            format: ['camelCase', 'PascalCase'],
-          },
-        ],
-      },
-    },
-  ],
   settings: {
     'import/resolver': {
       node: {

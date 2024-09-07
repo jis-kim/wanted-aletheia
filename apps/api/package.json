@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@nestjs/config": "^3.2.3",
     "@nestjs/typeorm": "^10.0.2",
     "mysql2": "^3.11.0",
     "typeorm": "^0.3.20"
