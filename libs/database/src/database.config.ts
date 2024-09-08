@@ -1,4 +1,5 @@
 import { registerAs } from '@nestjs/config';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 export default registerAs('database', () => ({
   type: 'mariadb',
@@ -8,4 +9,7 @@ export default registerAs('database', () => ({
   password: process.env.MARIADB_PASSWORD,
   database: process.env.MARIADB_DATABASE,
   synchronize: process.env.NODE_ENV !== 'production',
+  logging: process.env.NODE_ENV === 'production' ? ['warn', 'error'] : true,
+  autoLoadEntities: true,
+  namingStrategy: new SnakeNamingStrategy(),
 }));
