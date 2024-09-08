@@ -7,6 +7,14 @@ import { DataSource } from 'typeorm';
 import { ProductOrder, OrderStatus, OrderType } from '../../../../apps/order/src/entity/product-order.entity';
 import { Product, TransactionPurpose } from '../../../../apps/order/src/entity/product.entity';
 import { User } from '../../../../apps/auth/src/entity/user.entity';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+
+function generateOrderNumber(type: string): string {
+  const orderType = type === 'BUY' ? 'B' : 'S';
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const randomNumber = Math.floor(Math.random() * 1000000);
+  return `${orderType}-${timestamp}-${randomNumber}`;
+}
 
 async function createOrderDataSource(): Promise<DataSource> {
   config({ path: path.resolve(__dirname, '../../../../apps/order/.env') });
@@ -19,6 +27,7 @@ async function createOrderDataSource(): Promise<DataSource> {
     database: process.env.MARIADB_DATABASE,
     entities: [Product, ProductOrder],
     synchronize: true,
+    namingStrategy: new SnakeNamingStrategy(),
   });
 }
 
@@ -33,6 +42,7 @@ async function createAuthDataSource(): Promise<DataSource> {
     database: process.env.MARIADB_DATABASE,
     entities: [User],
     synchronize: true,
+    namingStrategy: new SnakeNamingStrategy(),
   });
 }
 
@@ -121,25 +131,25 @@ async function seedProductOrders(orderDataSource: DataSource, authDataSource: Da
 
   const orders = [
     {
-      orderNumber: 'ORD' + Date.now().toString().slice(-10),
       type: OrderType.BUY,
       userId: users[0].id,
       status: OrderStatus.ORDERED,
       product: products[0],
       quantity: 0.5,
       totalPrice: products[0].price * 0.5,
+      orderNumber: generateOrderNumber('BUY'),
       shippingAddress: '서울시 강남구',
       shippingName: '홍길동',
       shippingPhone: '010-1234-5678',
       shippingMemo: '부재시 경비실에 맡겨주세요',
     },
     {
-      orderNumber: 'ORD' + (Date.now() + 1).toString().slice(-10),
       type: OrderType.SELL,
       userId: users[1].id,
       status: OrderStatus.DEPOSITED,
       product: products[1],
       quantity: 1,
+      orderNumber: generateOrderNumber('BUY'),
       totalPrice: products[1].price,
       shippingAddress: '부산시 해운대구',
       shippingName: '김철수',
@@ -148,7 +158,7 @@ async function seedProductOrders(orderDataSource: DataSource, authDataSource: Da
     },
   ];
 
-  await productOrderRepository.save(orders);
+  await productOrderRepository.insert(orders);
 
   console.log('ProductOrders seeded successfully');
 }
