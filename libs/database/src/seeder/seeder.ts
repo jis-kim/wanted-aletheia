@@ -4,12 +4,12 @@ import * as bcrypt from 'bcrypt';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
 
-import { ProductOrder, OrderStatus, OrderType } from '../../../../apps/api/src/entity/product-order.entity';
-import { Product, TransactionPurpose } from '../../../../apps/api/src/entity/product.entity';
+import { ProductOrder, OrderStatus, OrderType } from '../../../../apps/order/src/entity/product-order.entity';
+import { Product, TransactionPurpose } from '../../../../apps/order/src/entity/product.entity';
 import { User } from '../../../../apps/auth/src/entity/user.entity';
 
-async function createApiDataSource(): Promise<DataSource> {
-  config({ path: path.resolve(__dirname, '../../../../apps/api/.env') });
+async function createOrderDataSource(): Promise<DataSource> {
+  config({ path: path.resolve(__dirname, '../../../../apps/order/.env') });
   return new DataSource({
     type: 'mariadb',
     host: process.env.MARIADB_HOST,
@@ -110,9 +110,9 @@ async function seedProducts(dataSource: DataSource) {
   console.log('Products seeded successfully');
 }
 
-async function seedProductOrders(apiDataSource: DataSource, authDataSource: DataSource) {
-  const productOrderRepository = apiDataSource.getRepository(ProductOrder);
-  const productRepository = apiDataSource.getRepository(Product);
+async function seedProductOrders(orderDataSource: DataSource, authDataSource: DataSource) {
+  const productOrderRepository = orderDataSource.getRepository(ProductOrder);
+  const productRepository = orderDataSource.getRepository(Product);
 
   const userRepository = authDataSource.getRepository(User);
 
@@ -154,27 +154,27 @@ async function seedProductOrders(apiDataSource: DataSource, authDataSource: Data
 }
 
 export async function seedAll() {
-  let apiDataSource: DataSource | null = null;
+  let orderDataSource: DataSource | null = null;
 
   let authDataSource: DataSource | null = null;
 
   try {
-    apiDataSource = await createApiDataSource();
-    await apiDataSource.initialize();
+    orderDataSource = await createOrderDataSource();
+    await orderDataSource.initialize();
 
     authDataSource = await createAuthDataSource();
     await authDataSource.initialize();
 
     await seedUsers(authDataSource);
-    await seedProducts(apiDataSource);
-    await seedProductOrders(apiDataSource, authDataSource);
+    await seedProducts(orderDataSource);
+    await seedProductOrders(orderDataSource, authDataSource);
 
     console.log('All seeding completed successfully');
   } catch (error) {
     console.error('Error during seeding:', error);
   } finally {
-    if (apiDataSource) {
-      await apiDataSource.destroy();
+    if (orderDataSource) {
+      await orderDataSource.destroy();
     }
 
     if (authDataSource) {
