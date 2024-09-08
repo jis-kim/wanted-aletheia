@@ -12,6 +12,7 @@
   "dependencies": {
     "@nestjs/config": "^3.2.3",
     "@nestjs/typeorm": "^10.0.2",
-    "joi": "^17.13.3"
+    "joi": "^17.13.3",
+    "typeorm-naming-strategies": "^4.1.0"
   }
 }

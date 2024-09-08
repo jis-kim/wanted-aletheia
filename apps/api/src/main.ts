@@ -7,7 +7,7 @@ import { LoggerInterceptor } from '@app/logger/logger.interceptor';
 
 const config = new DocumentBuilder()
   .setTitle('Aletheia API')
-  .setDescription('금 거래소 서비스: Aletheia API 문서')
+  .setDescription('금 거래소 서비스: Aletheia 주문 API 문서')
   .setVersion('1.0')
   .addTag('Aletheia')
   .build();
@@ -18,7 +18,7 @@ async function bootstrap() {
   });
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('docs', app, document);
 
   const logger = app.get(LoggerService);
   app.useLogger(logger);

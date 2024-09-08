@@ -5,9 +5,15 @@ import Joi from 'joi';
 
 import databaseConfig from './database.config';
 
+import { EntityClassOrSchema } from '@nestjs/typeorm/dist/interfaces/entity-class-or-schema.type';
+
+/**
+ * DatabaseModule
+ * envFile, entities를 받아 TypeOrmModule.forRootAsync를 통해 TypeOrmModule을 동적으로 생성하는 모듈
+ */
 @Module({})
 export class DatabaseModule {
-  static forRoot(envFilePath: string | string[]): DynamicModule {
+  static forRoot(envFilePath: string | string[], entities: EntityClassOrSchema[]): DynamicModule {
     return {
       module: DatabaseModule,
       imports: [
@@ -20,12 +26,15 @@ export class DatabaseModule {
             MARIADB_DATABASE: Joi.string().required(),
             MARIADB_USER: Joi.string().required(),
             MARIADB_PASSWORD: Joi.string().required(),
+            SERVICE_NAME: Joi.string().required(),
+            NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
           }),
         }),
         TypeOrmModule.forRootAsync({
           imports: [ConfigModule],
           useFactory: (configService: ConfigService) => ({
             ...configService.get('database'),
+            entities: entities,
           }),
           inject: [ConfigService],
         }),
