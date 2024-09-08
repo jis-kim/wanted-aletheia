@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { OrderModule } from './order.module';
+import { ValidationPipe } from '@nestjs/common';
 
 const config = new DocumentBuilder()
   .setTitle('Aletheia API')
@@ -24,6 +25,13 @@ async function bootstrap() {
   app.useLogger(logger);
   app.useGlobalInterceptors(new LoggerInterceptor(logger));
 
-  await app.listen(3000);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+
+  await app.listen(process.env.REST_API_PORT || 3000);
 }
 bootstrap();

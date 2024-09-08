@@ -76,6 +76,10 @@ export class ProductOrder {
   @Column('decimal', { precision: 10, scale: 2 })
   totalPrice: number;
 
+  /**
+   * 배송 정보
+   * - 주소, 이름, 전화번호, 메모
+   */
   @Column('varchar', { length: 255 })
   shippingAddress: string;
 
