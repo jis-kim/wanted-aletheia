@@ -5,12 +5,20 @@ export enum TransactionPurpose {
   FOR_PURCHASE = '구매용', // 구매용 -> 소비자가 판매 가능
 }
 
+/**
+ * Product
+ * - 상품 정보
+ */
 @Entity()
 export class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('varchar', { length: 255 })
+  /**
+   * 상품명
+   * - 금
+   */
+  @Column('varchar', { length: 255, default: '금' })
   name: string;
 
   @Column('decimal', { precision: 5, scale: 2 })
@@ -20,7 +28,7 @@ export class Product {
   price: number;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  stockAmount: number; // 재고량
+  stockAmount: number;
 
   @Column({
     type: 'enum',

@@ -33,8 +33,10 @@ export class ProductOrder {
 
   /**
    * human readable한 주문 번호
+   * B(S)-timestamp-randomNumber
+   * @example B-1725802729-123456
    */
-  @Column({ length: 14, unique: true })
+  @Column({ length: 20, unique: true })
   orderNumber: string;
 
   /**
@@ -56,6 +58,9 @@ export class ProductOrder {
   @ManyToOne(() => Product)
   @JoinColumn()
   product: Product;
+
+  @Column()
+  productId: string;
 
   /**
    * 주문 수량 (g)
