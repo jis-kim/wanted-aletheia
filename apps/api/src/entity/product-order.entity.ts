@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
+
 import { Product } from './product.entity';
 
 export enum OrderStatus {

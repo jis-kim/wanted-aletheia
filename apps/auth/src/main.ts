@@ -1,8 +1,8 @@
+import { LoggerService } from '@app/logger';
+import { LoggerInterceptor } from '@app/logger/logger.interceptor';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-import { LoggerService } from '@app/logger';
-import { LoggerInterceptor } from '@app/logger/logger.interceptor';
 import { AuthModule } from './auth.module';
 
 const config = new DocumentBuilder()

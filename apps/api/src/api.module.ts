@@ -1,13 +1,12 @@
 import { DatabaseModule } from '@app/database';
+import { LoggerModule } from '@app/logger';
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ApiController } from './api.controller';
 import { ApiService } from './api.service';
-import { LoggerModule } from '@app/logger';
-import { Product } from './entity/product.entity';
 import { ProductOrder } from './entity/product-order.entity';
-
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Product } from './entity/product.entity';
 
 @Module({
   imports: [

@@ -1,11 +1,12 @@
-import { config } from 'dotenv';
 import path from 'path';
+
+import * as bcrypt from 'bcrypt';
+import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
-import { Product, TransactionPurpose } from '../../../../apps/api/src/entity/product.entity';
 
 import { ProductOrder, OrderStatus, OrderType } from '../../../../apps/api/src/entity/product-order.entity';
+import { Product, TransactionPurpose } from '../../../../apps/api/src/entity/product.entity';
 import { User } from '../../../../apps/auth/src/entity/user.entity';
-import * as bcrypt from 'bcrypt';
 
 async function createApiDataSource(): Promise<DataSource> {
   config({ path: path.resolve(__dirname, '../../../../apps/api/.env') });

@@ -1,9 +1,9 @@
+import { LoggerService } from '@app/logger';
+import { LoggerInterceptor } from '@app/logger/logger.interceptor';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { ApiModule } from './api.module';
-import { LoggerService } from '@app/logger';
-import { LoggerInterceptor } from '@app/logger/logger.interceptor';
 
 const config = new DocumentBuilder()
   .setTitle('Aletheia API')
