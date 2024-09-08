@@ -48,7 +48,7 @@ export class LoggerService implements NestLoggerService {
     });
 
     this.logger = winston.createLogger({
-      level: process.env.LOG_LEVEL || process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+      level: process.env.LOG_LEVEL || 'info',
       transports: [
         new winston.transports.Console({
           format: consoleFormat,
@@ -58,23 +58,23 @@ export class LoggerService implements NestLoggerService {
     });
   }
 
-  log(message: string, context?: string) {
+  log(message: any, context?: string) {
     this.logger.info(message, { context });
   }
 
-  error(message: string, trace?: string, context?: string) {
+  error(message: any, trace?: string, context?: string) {
     this.logger.error(message, { context, trace });
   }
 
-  warn(message: string, context?: string) {
+  warn(message: any, context?: string) {
     this.logger.warn(message, { context });
   }
 
-  debug(message: string, context?: string) {
+  debug(message: any, context?: string) {
     this.logger.debug(message, { context });
   }
 
-  verbose(message: string, context?: string) {
+  verbose(message: any, context?: string) {
     this.logger.verbose(message, { context });
   }
 }
