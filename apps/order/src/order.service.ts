@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateOrderResponseDto } from './dto/create-order-response.dto';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { CreateOrderDto, CreateOrderResponseDto, OrderDetailResponseDto } from './dto';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductOrder } from './entity/product-order.entity';
 import { Repository } from 'typeorm';
@@ -38,6 +38,38 @@ export class OrderService {
       orderNumber,
       status: result.generatedMaps[0].status,
       totalPrice,
+    };
+  }
+
+  async getOrderDetail(userId: string, orderId: string): Promise<OrderDetailResponseDto> {
+    // TODO: user id index 추가 고려
+    const order = await this.productOrderRepository.findOne({
+      where: { id: orderId, userId: userId },
+      relations: ['product'],
+    });
+    if (order === null) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      type: order.type,
+      status: order.status,
+      product: {
+        id: order.product.id,
+        name: order.product.name,
+        purity: order.product.purity,
+        price: order.product.price,
+      },
+      quantity: order.quantity,
+      totalPrice: order.totalPrice,
+      orderDate: order.orderDate,
+      updatedAt: order.updatedAt,
+      shippingAddress: order.shippingAddress,
+      shippingName: order.shippingName,
+      shippingPhone: order.shippingPhone,
+      shippingMemo: order.shippingMemo,
     };
   }
 

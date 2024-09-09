@@ -2,8 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/commo
 
 import { OrderService } from './order.service';
 import { ApiTags } from '@nestjs/swagger';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { CreateOrderResponseDto } from './dto/create-order-response.dto';
+import { CreateOrderDto, CreateOrderResponseDto, OrderDetailResponseDto } from './dto';
 
 @ApiTags('Order')
 @Controller('orders')
@@ -22,8 +21,9 @@ export class OrderController {
   }
 
   @Get(':id')
-  getOrderDetail(): string {
-    return 'Get Order Detail';
+  getOrderDetail(@Param('id') orderId: string): Promise<OrderDetailResponseDto> {
+    const userId = 'f565b0c5-a02b-409c-beb5-052cc7088303';
+    return this.orderService.getOrderDetail(userId, orderId);
   }
 
   @Patch(':id')
