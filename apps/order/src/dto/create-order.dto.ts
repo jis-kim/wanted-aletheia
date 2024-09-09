@@ -1,8 +1,18 @@
-import { Type } from 'class-transformer';
-import { IsEnum, IsUUID, IsNumber, IsString, Min, MaxLength, IsOptional } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import {
+  IsEnum,
+  IsUUID,
+  IsNumber,
+  IsString,
+  Min,
+  MaxLength,
+  IsOptional,
+  IsPositive,
+  ValidateIf,
+} from 'class-validator';
 
 import { OrderType } from '../entity/product-order.entity';
-import { IsDecimalWithOneOrTwoDP } from '../common/decorator/is-decimal-with-one-or-two-dp';
+import { IsValidQuantity } from '../common/decorator/is-valid-quantity';
 
 // POST /order API Request DTO
 export class CreateOrderDto {
@@ -16,25 +26,43 @@ export class CreateOrderDto {
   @IsUUID()
   productId: string;
 
-  @IsNumber()
+  /**
+   * 주문 수량 (g)
+   * - 소수점 2자리까지 허용
+   * @example 100.5
+   */
+  @IsValidQuantity()
   @Type(() => Number)
-  //@IsDecimal({ decimal_digits: '0,2' }) // 소수점 1자리 또는 2자리 허용
-  @IsDecimalWithOneOrTwoDP()
-  @Min(0.01)
   quantity: number;
 
+  /**
+   * 배송지 주소
+   * @example 서울시 강남구 테헤란로 427
+   */
   @IsString()
   @MaxLength(255)
   shippingAddress: string;
 
+  /**
+   * 배송지 이름
+   * @example 홍길동
+   */
   @IsString()
   @MaxLength(255)
   shippingName: string;
 
+  /**
+   * 배송지 전화번호
+   * @example 010-1234-5678
+   */
   @IsString()
   @MaxLength(255)
   shippingPhone: string;
 
+  /**
+   * 배송 메모
+   * @example 문 앞에 놓아주세요
+   */
   @IsString()
   @MaxLength(255)
   @IsOptional()
