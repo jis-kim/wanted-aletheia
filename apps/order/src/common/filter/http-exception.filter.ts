@@ -1,31 +1,33 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
+import { LoggerService } from '@app/logger';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 
-export type ApiResponseType<T> = {
-  success: boolean;
-  statusCode: number;
-  message: string;
-  data?: T;
-  error?: string;
-};
+import { ApiResponseDto } from '../../dto';
 
-@Catch(HttpException)
-export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: HttpException, host: ArgumentsHost) {
+@Catch()
+export class AllExceptionsFilter implements ExceptionFilter {
+  constructor(private readonly logger: LoggerService) {}
+
+  catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const status = exception.getStatus();
-    const exceptionResponse = exception.getResponse();
+    const request = ctx.getRequest<Request>();
+    const status = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+    const message =
+      status < HttpStatus.INTERNAL_SERVER_ERROR && exception instanceof HttpException
+        ? exception.getResponse()
+        : 'Internal server error';
 
-    const errorResponse: ApiResponseType<null> = {
+    const errorResponse: ApiResponseDto<undefined> = {
       success: false,
       statusCode: status,
-      message:
-        typeof exceptionResponse === 'string'
-          ? exceptionResponse
-          : (exceptionResponse as any).message || 'An error occurred',
-      error: typeof exceptionResponse === 'string' ? undefined : (exceptionResponse as any).error,
+      message: typeof message === 'string' ? message : (message as any).message,
     };
+
+    this.logger.error(
+      `[${request.method}] ${request.url} ${status} - Error: ${JSON.stringify(errorResponse)}`,
+      (exception as Error).stack,
+    );
 
     response.status(status).json(errorResponse);
   }

@@ -1,10 +1,11 @@
 import { LoggerService } from '@app/logger';
-import { LoggerInterceptor } from '@app/logger/logger.interceptor';
+import { BadRequestException, ValidationError, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+import { AllExceptionsFilter } from './common/filter/http-exception.filter';
+import { ApiResponseInterceptor } from './common/interceptor/api-response.interceptor';
 import { OrderModule } from './order.module';
-import { ValidationPipe } from '@nestjs/common';
 
 const config = new DocumentBuilder()
   .setTitle('Aletheia API')
@@ -23,14 +24,18 @@ async function bootstrap() {
 
   const logger = app.get(LoggerService);
   app.useLogger(logger);
-  app.useGlobalInterceptors(new LoggerInterceptor(logger));
 
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
+      exceptionFactory: (validationErrors: ValidationError[] = []) => {
+        return new BadRequestException(Object.values(validationErrors[0]?.constraints || {})[0]);
+      },
     }),
   );
+  app.useGlobalInterceptors(new ApiResponseInterceptor(logger));
+  app.useGlobalFilters(new AllExceptionsFilter(logger));
 
   await app.listen(process.env.REST_API_PORT || 3000);
 }

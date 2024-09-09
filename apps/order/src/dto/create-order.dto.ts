@@ -1,38 +1,8 @@
-import {
-  IsEnum,
-  IsUUID,
-  IsNumber,
-  IsString,
-  Min,
-  MaxLength,
-  IsOptional,
-  registerDecorator,
-  ValidationOptions,
-} from 'class-validator';
 import { Type } from 'class-transformer';
-import { OrderType } from '../entity/product-order.entity';
+import { IsEnum, IsUUID, IsNumber, IsString, Min, MaxLength, IsOptional } from 'class-validator';
 
-export function IsDecimalWithOneOrTwoDP(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
-    registerDecorator({
-      name: 'isDecimalWithOneOrTwoDP',
-      target: object.constructor,
-      propertyName: propertyName,
-      options: validationOptions,
-      validator: {
-        validate(value: any) {
-          if (typeof value !== 'number') return false;
-          const stringValue = value.toString();
-          // 정수 또는 소수점 첫째자리나 둘째자리까지의 숫자 허용
-          return /^-?\d+(\.\d{1,2})?$/.test(stringValue);
-        },
-        defaultMessage() {
-          return `${propertyName} must be a number with up to 2 decimal places`;
-        },
-      },
-    });
-  };
-}
+import { OrderType } from '../entity/product-order.entity';
+import { IsDecimalWithOneOrTwoDP } from '../common/decorator/is-decimal-with-one-or-two-dp';
 
 // POST /order API Request DTO
 export class CreateOrderDto {
