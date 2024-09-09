@@ -1,7 +1,9 @@
+import { HttpStatus } from '@nestjs/common';
+
 /**
  * API 공통 response type
  */
-export type ApiResponseDto<T> = {
+export class ApiResponseDto<T> {
   /**
    * 성공 여부
    * - true: 성공
@@ -27,4 +29,14 @@ export type ApiResponseDto<T> = {
    * @example { id: 'uuid', name: '금' }
    */
   data?: T;
-};
+
+  // create method in controller
+  static create<T>(data: T, statusCode: HttpStatus = HttpStatus.OK): ApiResponseDto<T> {
+    const response = new ApiResponseDto<T>();
+    response.success = true;
+    response.statusCode = statusCode;
+    response.message = '성공';
+    response.data = data;
+    return response;
+  }
+}

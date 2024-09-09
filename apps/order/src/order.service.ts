@@ -3,14 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateOrderDto, CreateOrderResponseDto, OrderDetailResponseDto } from './dto';
-import { ProductOrder } from './entity/product-order.entity';
+import { ProductOrder as Order } from './entity/product-order.entity';
 import { Product } from './entity/product.entity';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrderService {
   constructor(
-    @InjectRepository(ProductOrder)
-    private readonly productOrderRepository: Repository<ProductOrder>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
 
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
@@ -25,7 +26,7 @@ export class OrderService {
     const orderNumber = this.generateOrderNumber(createOrderDto.type);
     const totalPrice = this.calculateTotalPrice(product.price, createOrderDto.quantity);
 
-    const result = await this.productOrderRepository.insert({
+    const result = await this.orderRepository.insert({
       ...createOrderDto,
       userId,
       productId: product.id,
@@ -43,7 +44,7 @@ export class OrderService {
 
   async getOrderDetail(userId: string, orderId: string): Promise<OrderDetailResponseDto> {
     // TODO: user id index 추가 고려
-    const order = await this.productOrderRepository.findOne({
+    const order = await this.orderRepository.findOne({
       where: { id: orderId, userId: userId },
       relations: ['product'],
     });
@@ -71,6 +72,28 @@ export class OrderService {
       shippingPhone: order.shippingPhone,
       shippingMemo: order.shippingMemo,
     };
+  }
+
+  /**
+   * 상태 외의 정보를 수정한다.
+   *
+   * @param userId
+   * @param orderId
+   * @param updateOrderDto
+   * @returns
+   */
+  async updateOrder(userId: string, orderId: string, updateOrderDto: UpdateOrderDto): Promise<void> {
+    const order = await this.orderRepository.findOneBy({ id: orderId, userId: userId });
+    if (order === null) {
+      throw new NotFoundException('Order not found');
+    }
+    this.orderRepository.update(orderId, {
+      quantity: updateOrderDto.quantity,
+      shippingAddress: updateOrderDto.shippingAddress,
+      shippingName: updateOrderDto.shippingName,
+      shippingPhone: updateOrderDto.shippingPhone,
+      shippingMemo: updateOrderDto.shippingMemo,
+    });
   }
 
   // SECTION: private
