@@ -1,5 +1,5 @@
 import { LoggerService } from '@app/logger';
-import { BadRequestException, ValidationError, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
@@ -24,18 +24,15 @@ async function bootstrap() {
 
   const logger = app.get(LoggerService);
   app.useLogger(logger);
+  app.useGlobalInterceptors(new ApiResponseInterceptor(logger));
+  app.useGlobalFilters(new AllExceptionsFilter(logger));
 
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
-      exceptionFactory: (validationErrors: ValidationError[] = []) => {
-        return new BadRequestException(Object.values(validationErrors[0]?.constraints || {})[0]);
-      },
     }),
   );
-  app.useGlobalInterceptors(new ApiResponseInterceptor(logger));
-  app.useGlobalFilters(new AllExceptionsFilter(logger));
 
   await app.listen(process.env.REST_API_PORT || 3000);
 }

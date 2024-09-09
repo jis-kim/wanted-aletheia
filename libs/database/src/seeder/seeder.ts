@@ -3,11 +3,11 @@ import path from 'path';
 import * as bcrypt from 'bcrypt';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
+import { User } from '../../../../apps/auth/src/entity/user.entity';
 import { ProductOrder, OrderStatus, OrderType } from '../../../../apps/order/src/entity/product-order.entity';
 import { Product, TransactionPurpose } from '../../../../apps/order/src/entity/product.entity';
-import { User } from '../../../../apps/auth/src/entity/user.entity';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 function generateOrderNumber(type: string): string {
   const orderType = type === 'BUY' ? 'B' : 'S';

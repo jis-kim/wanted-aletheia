@@ -1,11 +1,12 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { OrderService } from './order.service';
-import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderType, ProductOrder } from './entity/product-order.entity';
 import { Product } from './entity/product.entity';
-import { NotFoundException } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { OrderService } from './order.service';
 
 describe('OrderService', () => {
   let service: OrderService;
@@ -54,7 +55,7 @@ describe('OrderService', () => {
       });
     });
 
-    it('상품을 찾을 수 없을 경우 Not Found 예외를 던진다', async () => {
+    it('상품을 찾을 수 없을 경우 Not Found', async () => {
       const createOrderDto: CreateOrderDto = { productId: '1', type: OrderType.BUY, quantity: 10 } as CreateOrderDto;
 
       jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(null);

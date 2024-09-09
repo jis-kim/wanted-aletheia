@@ -1,18 +1,8 @@
-import { Transform, Type } from 'class-transformer';
-import {
-  IsEnum,
-  IsUUID,
-  IsNumber,
-  IsString,
-  Min,
-  MaxLength,
-  IsOptional,
-  IsPositive,
-  ValidateIf,
-} from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEnum, IsUUID, IsString, MaxLength, IsOptional } from 'class-validator';
 
-import { OrderType } from '../entity/product-order.entity';
 import { IsValidQuantity } from '../common/decorator/is-valid-quantity';
+import { OrderType } from '../entity/product-order.entity';
 
 // POST /order API Request DTO
 export class CreateOrderDto {

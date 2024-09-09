@@ -3,10 +3,10 @@ import { LoggerModule } from '@app/logger';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { OrderController } from './order.controller';
-import { OrderService } from './order.service';
 import { ProductOrder } from './entity/product-order.entity';
 import { Product } from './entity/product.entity';
+import { OrderController } from './order.controller';
+import { OrderService } from './order.service';
 
 @Module({
   imports: [
