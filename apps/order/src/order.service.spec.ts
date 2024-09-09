@@ -63,6 +63,40 @@ describe('OrderService', () => {
     });
   });
 
+  describe('getOrderDetail', () => {
+    it('올바른 주문자가 주문 번호로 조회하면 주문 상세정보 반환', async () => {
+      const order = {
+        id: 'order-1',
+        orderNumber: 'B-1234567890-123456',
+        type: OrderType.BUY,
+        status: 'pending',
+        product: { id: '1', name: 'product', purity: 99.9, price: 1000 },
+        quantity: 10,
+        totalPrice: 10000,
+      } as unknown as ProductOrder;
+
+      jest.spyOn(productOrderRepository, 'findOne').mockResolvedValue(order);
+
+      const result = await service.getOrderDetail('user-1', 'order-1');
+
+      expect(result).toEqual({
+        id: 'order-1',
+        orderNumber: 'B-1234567890-123456',
+        type: OrderType.BUY,
+        status: 'pending',
+        product: { id: '1', name: 'product', purity: 99.9, price: 1000 },
+        quantity: 10,
+        totalPrice: 10000,
+      });
+    });
+
+    it('주문자가 아니거나 order가 없는 경우 Not Found', async () => {
+      jest.spyOn(productOrderRepository, 'findOne').mockResolvedValue(null);
+
+      await expect(service.getOrderDetail('user-1', 'order-1')).rejects.toThrow(NotFoundException);
+    });
+  });
+
   describe('generateOrderNumber', () => {
     it('주문 번호를 type(B/S)-timestamp(10)-number(6) 형식으로 생성한다', () => {
       // private 메서드이므로 service['']로 호출
