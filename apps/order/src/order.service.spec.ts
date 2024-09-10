@@ -1,26 +1,46 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Entity, Repository } from 'typeorm';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderStatus, OrderType, ProductOrder } from './entity/product-order.entity';
-import { Product } from './entity/product.entity';
+import { Product, TransactionPurpose } from './entity/product.entity';
 import { OrderService } from './order.service';
 import { UpdateOrderDto } from './dto/update-order.dto';
 
 describe('OrderService', () => {
   let service: OrderService;
-  let productOrderRepository: Repository<ProductOrder>;
+  let orderRepository: Repository<ProductOrder>;
   let productRepository: Repository<Product>;
+  let mockTransactionInsert: jest.Mock;
 
   beforeEach(async () => {
+    mockTransactionInsert = jest.fn().mockImplementation(async (entity, data) => ({
+      identifiers: [{ id: 'order-1' }],
+      generatedMaps: [{ status: OrderStatus.ORDERED, ...data }],
+      raw: {},
+    }));
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrderService,
         {
           provide: getRepositoryToken(ProductOrder),
-          useClass: Repository,
+          useValue: {
+            manager: {
+              transaction: jest.fn((callback) =>
+                callback({
+                  insert: mockTransactionInsert,
+                  update: jest.fn().mockResolvedValue({}),
+                }),
+              ),
+            },
+            findOneBy: jest.fn(),
+            update: jest.fn(),
+            softRemove: jest.fn(),
+            findOne: jest.fn(),
+          },
         },
         {
           provide: getRepositoryToken(Product),
@@ -30,38 +50,98 @@ describe('OrderService', () => {
     }).compile();
 
     service = module.get<OrderService>(OrderService);
-    productOrderRepository = module.get<Repository<ProductOrder>>(getRepositoryToken(ProductOrder));
+    orderRepository = module.get<Repository<ProductOrder>>(getRepositoryToken(ProductOrder));
     productRepository = module.get<Repository<Product>>(getRepositoryToken(Product));
   });
 
   describe('createOrder', () => {
     it('상품 주문이 성공하면 주문 번호와 상태를 반환한다', async () => {
-      const createOrderDto: CreateOrderDto = { productId: '1', type: OrderType.BUY, quantity: 10 } as CreateOrderDto;
-      const product = { id: '1', price: 1000 } as Product;
+      const createOrderDto: CreateOrderDto = { productId: '1', quantity: 10 } as CreateOrderDto;
+      const product = { id: '1', price: 1000, transactionPurpose: TransactionPurpose.FOR_SALE } as Product;
 
       jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(product);
-      jest.spyOn(productOrderRepository, 'insert').mockResolvedValue({
-        identifiers: [{ id: 'order-1' }],
-        generatedMaps: [{ status: 'pending' }],
-        raw: {},
+      const result = await service.createOrder('user-1', createOrderDto);
+
+      expect(result).toEqual({
+        id: 'order-1',
+        orderNumber: expect.any(String),
+        type: OrderType.BUY,
+        status: OrderStatus.ORDERED,
+        totalPrice: 10000,
       });
+    });
+
+    it('상품의 거래 목적이 FOR_SALE일 경우 BUY로 주문한다', async () => {
+      const createOrderDto: CreateOrderDto = { productId: '1', quantity: 10 } as CreateOrderDto;
+      const product = { id: '1', price: 1000, transactionPurpose: TransactionPurpose.FOR_SALE } as Product;
+
+      jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(product);
+      const result = await service.createOrder('user-1', createOrderDto);
+      expect(result).toEqual({
+        id: 'order-1',
+        orderNumber: expect.any(String),
+        type: OrderType.BUY,
+        status: OrderStatus.ORDERED,
+        totalPrice: 10000,
+      });
+
+      expect(mockTransactionInsert).toHaveBeenCalledWith(
+        expect.any(Function),
+        expect.objectContaining({
+          // 전체 dto + 추가 필드
+          type: OrderType.BUY,
+          userId: 'user-1',
+          productId: '1',
+          totalPrice: 10000,
+          orderNumber: expect.any(String),
+        }),
+      );
+    });
+
+    it('상품의 거래 목적이 FOR_PURCHASE일 경우 SELL로 주문한다', async () => {
+      const createOrderDto: CreateOrderDto = { productId: '1', quantity: 10 } as CreateOrderDto;
+      const product = { id: '1', price: 1000, transactionPurpose: TransactionPurpose.FOR_PURCHASE } as Product;
+
+      jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(product);
 
       const result = await service.createOrder('user-1', createOrderDto);
 
       expect(result).toEqual({
         id: 'order-1',
         orderNumber: expect.any(String),
-        status: 'pending',
+        type: OrderType.SELL,
+        status: OrderStatus.ORDERED,
         totalPrice: 10000,
       });
+
+      expect(mockTransactionInsert).toHaveBeenCalledWith(
+        expect.any(Function),
+        expect.objectContaining({
+          // 전체 dto + 추가 필드
+          type: OrderType.SELL,
+          userId: 'user-1',
+          productId: '1',
+          totalPrice: 10000,
+          orderNumber: expect.any(String),
+        }),
+      );
     });
 
     it('상품을 찾을 수 없을 경우 Not Found', async () => {
-      const createOrderDto: CreateOrderDto = { productId: '1', type: OrderType.BUY, quantity: 10 } as CreateOrderDto;
+      const createOrderDto: CreateOrderDto = { productId: '1', quantity: 10 } as CreateOrderDto;
 
       jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(null);
 
       await expect(service.createOrder('user-1', createOrderDto)).rejects.toThrow(NotFoundException);
+    });
+
+    it('주문 수량이 재고보다 많을 경우 Bad Request', async () => {
+      const createOrderDto: CreateOrderDto = { productId: '1', quantity: 10 } as CreateOrderDto;
+      const product = { id: '1', stockAmount: 5 } as Product;
+
+      jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(product);
+
+      await expect(service.createOrder('user-1', createOrderDto)).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -70,8 +150,8 @@ describe('OrderService', () => {
       const updateOrderDto = { shippingAddress: 'address' } as UpdateOrderDto;
       const order = { id: 'order-1', userId: 'user-1', status: OrderStatus.ORDERED } as any as ProductOrder;
 
-      jest.spyOn(productOrderRepository, 'findOneBy').mockResolvedValue(order);
-      jest.spyOn(productOrderRepository, 'update').mockResolvedValue({} as any);
+      jest.spyOn(orderRepository, 'findOneBy').mockResolvedValue(order);
+      jest.spyOn(orderRepository, 'update').mockResolvedValue({} as any);
 
       const result = await service.updateOrder('user-1', 'order-1', updateOrderDto);
       expect(result).toEqual({
@@ -85,7 +165,7 @@ describe('OrderService', () => {
     it('주문자가 아니거나 order가 없는 경우 Not Found', async () => {
       const updateOrderDto = { shippingAddress: 'address' };
 
-      jest.spyOn(productOrderRepository, 'findOneBy').mockResolvedValue(null);
+      jest.spyOn(orderRepository, 'findOneBy').mockResolvedValue(null);
 
       await expect(service.updateOrder('user-1', 'order-1', updateOrderDto)).rejects.toThrow(NotFoundException);
     });
@@ -94,7 +174,7 @@ describe('OrderService', () => {
       const updateOrderDto = { shippingAddress: 'address' };
       const order = { id: 'order-1', userId: 'user-1', status: OrderStatus.SHIPPED } as any as ProductOrder;
 
-      jest.spyOn(productOrderRepository, 'findOneBy').mockResolvedValue(order);
+      jest.spyOn(orderRepository, 'findOneBy').mockResolvedValue(order);
 
       await expect(service.updateOrder('user-1', 'order-1', updateOrderDto)).rejects.toThrow(BadRequestException);
     });
@@ -103,7 +183,7 @@ describe('OrderService', () => {
       const updateOrderDto = { shippingAddress: 'address' };
       const order = { id: 'order-1', userId: 'user-1', status: OrderStatus.RECEIVED } as any as ProductOrder;
 
-      jest.spyOn(productOrderRepository, 'findOneBy').mockResolvedValue(order);
+      jest.spyOn(orderRepository, 'findOneBy').mockResolvedValue(order);
 
       await expect(service.updateOrder('user-1', 'order-1', updateOrderDto)).rejects.toThrow(BadRequestException);
     });
@@ -115,13 +195,13 @@ describe('OrderService', () => {
         id: 'order-1',
         orderNumber: 'B-1234567890-123456',
         type: OrderType.BUY,
-        status: 'pending',
+        status: OrderStatus.ORDERED,
         product: { id: '1', name: 'product', purity: 99.9, price: 1000 },
         quantity: 10,
         totalPrice: 10000,
       } as unknown as ProductOrder;
 
-      jest.spyOn(productOrderRepository, 'findOne').mockResolvedValue(order);
+      jest.spyOn(orderRepository, 'findOne').mockResolvedValue(order);
 
       const result = await service.getOrderDetail('user-1', 'order-1');
 
@@ -129,7 +209,7 @@ describe('OrderService', () => {
         id: 'order-1',
         orderNumber: 'B-1234567890-123456',
         type: OrderType.BUY,
-        status: 'pending',
+        status: OrderStatus.ORDERED,
         product: { id: '1', name: 'product', purity: 99.9, price: 1000 },
         quantity: 10,
         totalPrice: 10000,
@@ -137,7 +217,7 @@ describe('OrderService', () => {
     });
 
     it('주문자가 아니거나 order가 없는 경우 Not Found', async () => {
-      jest.spyOn(productOrderRepository, 'findOne').mockResolvedValue(null);
+      jest.spyOn(orderRepository, 'findOne').mockResolvedValue(null);
 
       await expect(service.getOrderDetail('user-1', 'order-1')).rejects.toThrow(NotFoundException);
     });
