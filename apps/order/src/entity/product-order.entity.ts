@@ -96,7 +96,7 @@ export class ProductOrder {
   shippingMemo: string | null;
 
   @CreateDateColumn()
-  orderDate: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;

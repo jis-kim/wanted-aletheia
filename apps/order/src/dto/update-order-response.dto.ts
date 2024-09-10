@@ -1,5 +1,3 @@
-import { OmitType } from '@nestjs/swagger';
+import { OrderDto } from './order.dto';
 
-import { ProductOrder } from '../entity/product-order.entity';
-
-export class UpdateOrderResponseDto extends OmitType(ProductOrder, ['deletedAt', 'product']) {}
+export class UpdateOrderResponseDto extends OrderDto {}

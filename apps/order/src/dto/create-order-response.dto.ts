@@ -1,6 +1,6 @@
 import { OmitType } from '@nestjs/swagger';
 
-import { ProductOrder } from '../entity/product-order.entity';
+import { OrderDto } from './order.dto';
 
 // POST /order API Response DTO
-export class CreateOrderResponseDto extends OmitType(ProductOrder, ['updatedAt', 'deletedAt', 'product', 'userId']) {}
+export class CreateOrderResponseDto extends OmitType(OrderDto, ['updatedAt', 'userId']) {}

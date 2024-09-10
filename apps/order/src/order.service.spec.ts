@@ -18,7 +18,7 @@ describe('OrderService', () => {
   beforeEach(async () => {
     mockTransactionInsert = jest.fn().mockImplementation(async (entity, data) => ({
       identifiers: [{ id: 'order-1' }],
-      generatedMaps: [{ status: OrderStatus.ORDERED, ...data }],
+      generatedMaps: [{ status: OrderStatus.ORDERED, ...data, createdAt: new Date() }],
       raw: {},
     }));
 
@@ -59,7 +59,7 @@ describe('OrderService', () => {
       const createOrderDto: CreateOrderDto = { productId: '1', quantity: 10 } as CreateOrderDto;
       const product = { id: '1', price: 1000, transactionPurpose: TransactionPurpose.FOR_SALE } as Product;
 
-      jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(product);
+      jest.spyOn(productRepository, 'findOne').mockResolvedValue(product);
       const result = await service.createOrder('user-1', createOrderDto);
 
       expect(result).toEqual({
@@ -68,6 +68,9 @@ describe('OrderService', () => {
         type: OrderType.BUY,
         status: OrderStatus.ORDERED,
         totalPrice: 10000,
+        productId: '1',
+        quantity: 10,
+        createdAt: expect.any(Date),
       });
     });
 
@@ -75,7 +78,7 @@ describe('OrderService', () => {
       const createOrderDto: CreateOrderDto = { productId: '1', quantity: 10 } as CreateOrderDto;
       const product = { id: '1', price: 1000, transactionPurpose: TransactionPurpose.FOR_SALE } as Product;
 
-      jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(product);
+      jest.spyOn(productRepository, 'findOne').mockResolvedValue(product);
       const result = await service.createOrder('user-1', createOrderDto);
       expect(result).toEqual({
         id: 'order-1',
@@ -83,6 +86,9 @@ describe('OrderService', () => {
         type: OrderType.BUY,
         status: OrderStatus.ORDERED,
         totalPrice: 10000,
+        productId: '1',
+        quantity: 10,
+        createdAt: expect.any(Date),
       });
 
       expect(mockTransactionInsert).toHaveBeenCalledWith(
@@ -102,7 +108,7 @@ describe('OrderService', () => {
       const createOrderDto: CreateOrderDto = { productId: '1', quantity: 10 } as CreateOrderDto;
       const product = { id: '1', price: 1000, transactionPurpose: TransactionPurpose.FOR_PURCHASE } as Product;
 
-      jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(product);
+      jest.spyOn(productRepository, 'findOne').mockResolvedValue(product);
 
       const result = await service.createOrder('user-1', createOrderDto);
 
@@ -112,6 +118,9 @@ describe('OrderService', () => {
         type: OrderType.SELL,
         status: OrderStatus.ORDERED,
         totalPrice: 10000,
+        productId: '1',
+        quantity: 10,
+        createdAt: expect.any(Date),
       });
 
       expect(mockTransactionInsert).toHaveBeenCalledWith(
@@ -130,7 +139,7 @@ describe('OrderService', () => {
     it('상품을 찾을 수 없을 경우 Not Found', async () => {
       const createOrderDto: CreateOrderDto = { productId: '1', quantity: 10 } as CreateOrderDto;
 
-      jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(null);
+      jest.spyOn(productRepository, 'findOne').mockResolvedValue(null);
 
       await expect(service.createOrder('user-1', createOrderDto)).rejects.toThrow(NotFoundException);
     });
@@ -139,7 +148,7 @@ describe('OrderService', () => {
       const createOrderDto: CreateOrderDto = { productId: '1', quantity: 10 } as CreateOrderDto;
       const product = { id: '1', stockAmount: 5 } as Product;
 
-      jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(product);
+      jest.spyOn(productRepository, 'findOne').mockResolvedValue(product);
 
       await expect(service.createOrder('user-1', createOrderDto)).rejects.toThrow(BadRequestException);
     });
@@ -189,10 +198,8 @@ describe('OrderService', () => {
 
       const result = await service.updateOrder('user-1', 'order-1', updateOrderDto);
       expect(result).toEqual({
-        order: {
-          ...order,
-          ...updateOrderDto,
-        },
+        ...order,
+        ...updateOrderDto,
       });
     });
 

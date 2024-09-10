@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiNotFoundResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 
 import { CheckIsUUIDPipe } from './common/pipe/check-is-uuid.pipe';
 import { CreateOrderDto, CreateOrderResponseDto, OrderDetailResponseDto } from './dto';
+import { SearchOrderDto } from './dto/order-search.dto';
 import { UpdateOrderResponseDto } from './dto/update-order-response.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateStatusResponseDto } from './dto/update-status-response.dto';
@@ -22,8 +23,9 @@ export class OrderController {
    */
   @ApiOperation({ description: '쿼리에 따라 다른 주문 리스트를 가져온다.' })
   @Get()
-  getOrderList(): string {
-    return 'Get Order List';
+  getOrderList(@Query() query: SearchOrderDto) {
+    const userId = 'f565b0c5-a02b-409c-beb5-052cc7088303';
+    return this.orderService.searchOrder(userId, query);
   }
 
   /**

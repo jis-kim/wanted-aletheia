@@ -2,7 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreateOrderDto, CreateOrderResponseDto, OrderDetailResponseDto } from './dto';
+import { CreateOrderDto, CreateOrderResponseDto, OrderDetailResponseDto, PaginationLinks } from './dto';
+import { SearchOrderDto } from './dto/order-search.dto';
 import { UpdateOrderResponseDto } from './dto/update-order-response.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateStatusResponseDto } from './dto/update-status-response.dto';
@@ -19,6 +20,45 @@ export class OrderService {
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
   ) {}
+
+  async searchOrder(userId: string, query: SearchOrderDto) {
+    const { date, invoiceType, limit = 10, offset = 0 } = query;
+    const queryBuilder = this.orderRepository.createQueryBuilder('order').where('order.userId = :userId', { userId });
+
+    if (date !== undefined) {
+      const startDate = new Date(date);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(date);
+      endDate.setHours(23, 59, 59, 999);
+      queryBuilder.andWhere('order.createdAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      });
+    }
+
+    if (invoiceType !== undefined) {
+      queryBuilder.andWhere('order.type = :invoiceType', { invoiceType });
+    }
+
+    queryBuilder.orderBy('order.createdAt', 'DESC').skip(offset).take(limit);
+
+    const [orders, total] = await queryBuilder.getManyAndCount();
+
+    const currentPage = Math.floor(offset / limit) + 1;
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      orders,
+      pagination: {
+        total,
+        limit,
+        offset,
+        currentPage,
+        totalPages,
+        links: this.generatePaginationLinks(limit, offset, total),
+      },
+    };
+  }
 
   async createOrder(userId: string, createOrderDto: CreateOrderDto): Promise<CreateOrderResponseDto> {
     const product = await this.productRepository.findOne({
@@ -54,14 +94,13 @@ export class OrderService {
       const stockAmount: number = product.stockAmount - createOrderDto.quantity;
       await transactionalEntityManager.update(Product, product.id, { stockAmount });
       return {
-        shippingMemo: null,
         ...createOrderDto, // productId, quantity, shippingAddress, shippingName, shippingPhone, shippingMemo
         id: result.identifiers[0].id,
         orderNumber,
         type,
         status: result.generatedMaps[0].status,
         totalPrice,
-        orderDate: result.generatedMaps[0].orderDate,
+        createdAt: result.generatedMaps[0].createdAt,
       };
     });
   }
@@ -91,7 +130,7 @@ export class OrderService {
       },
       quantity: order.quantity,
       totalPrice: order.totalPrice,
-      orderDate: order.orderDate,
+      createdAt: order.createdAt,
       shippingAddress: order.shippingAddress,
       shippingName: order.shippingName,
       shippingPhone: order.shippingPhone,
@@ -201,5 +240,18 @@ export class OrderService {
 
     // 새로운 상태가 현재 상태의 다음 단계인 경우에만 유효
     return newIndex === currentIndex + 1;
+  }
+
+  private generatePaginationLinks(limit: number, offset: number, total: number): PaginationLinks {
+    const currentPage = Math.floor(offset / limit) + 1;
+    const totalPages = Math.ceil(total / limit);
+
+    const path = '/api/orders';
+    return {
+      first: `${path}?limit=${limit}&offset=0`,
+      last: `${path}?limit=${limit}&offset=${(totalPages - 1) * limit}`,
+      prev: currentPage > 1 ? `${path}?limit=${limit}&offset=${(currentPage - 2) * limit}` : null,
+      next: currentPage < totalPages ? `${path}?limit=${limit}&offset=${currentPage * limit}` : null,
+    };
   }
 }

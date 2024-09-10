@@ -1,9 +1,10 @@
 import { OmitType } from '@nestjs/swagger';
 
-import { ProductOrder } from '../entity/product-order.entity';
 import { Product } from '../entity/product.entity';
 
+import { OrderDto } from './order.dto';
+
 type ProductInOrderType = Pick<Product, 'id' | 'name' | 'purity' | 'price' | 'transactionPurpose'>;
-export class OrderDetailResponseDto extends OmitType(ProductOrder, ['updatedAt', 'deletedAt', 'product', 'userId']) {
+export class OrderDetailResponseDto extends OmitType(OrderDto, ['updatedAt', 'userId']) {
   product: ProductInOrderType;
 }
