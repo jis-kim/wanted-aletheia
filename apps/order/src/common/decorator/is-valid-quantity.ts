@@ -9,7 +9,7 @@ export function IsValidQuantity(validationOptions?: ValidationOptions) {
       options: validationOptions,
       validator: {
         validate(value: any, args: ValidationArguments) {
-          if (typeof value !== 'number') {
+          if (typeof value !== 'number' || isNaN(value)) {
             return false;
           }
           const stringValue = value.toFixed(2);

@@ -7,6 +7,8 @@ import { Response } from 'express';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { CheckIsUUIDPipe } from './common/pipe/check-is-uuid.pipe';
 import { UpdateOrderResponseDto } from './dto/update-order-response.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
+import { UpdateStatusResponseDto } from './dto/update-status-response.dto';
 
 @ApiTags('Order')
 @Controller('orders')
@@ -35,7 +37,7 @@ export class OrderController {
   @Post()
   async createOrder(@Body() createOrderDto: CreateOrderDto, @Res() response: Response): Promise<void> {
     const userId = 'f565b0c5-a02b-409c-beb5-052cc7088303';
-    const result = await this.orderService.createOrder(userId, createOrderDto);
+    const result: CreateOrderResponseDto = await this.orderService.createOrder(userId, createOrderDto);
     response.header('Location', `/api/orders/${result.id}`).send(result);
   }
 
@@ -89,8 +91,14 @@ export class OrderController {
    *
    * @returns
    */
+  @ApiNotFoundResponse({ description: 'order가 존재하지 않을 경우, order를 생성한 사용자가 아닐 경우' })
+  @ApiBadRequestResponse({ description: 'type과 맞지 않는 상태이거나 변경할 수 없는 상태일 경우' })
   @Patch(':id/status')
-  updateOrderStatus(): string {
-    return 'Update Order Status By Id';
+  updateOrderStatus(
+    @Param('id', CheckIsUUIDPipe) orderId: string,
+    @Body() updateStatusDto: UpdateStatusDto,
+  ): Promise<UpdateStatusResponseDto> {
+    const userId = 'f565b0c5-a02b-409c-beb5-052cc7088303';
+    return this.orderService.updateOrderStatus(userId, orderId, updateStatusDto);
   }
 }
