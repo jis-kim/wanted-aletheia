@@ -3,7 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-import { AllExceptionsFilter } from './common/filter/http-exception.filter';
+import { AllExceptionsFilter } from './common/filter/all-exceptions.filter';
 import { ApiResponseInterceptor } from './common/interceptor/api-response.interceptor';
 import { OrderModule } from './order.module';
 
