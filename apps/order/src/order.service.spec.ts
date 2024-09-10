@@ -145,6 +145,40 @@ describe('OrderService', () => {
     });
   });
 
+  describe('getOrderDetail', () => {
+    it('올바른 주문자가 주문 번호로 조회하면 주문 상세정보 반환', async () => {
+      const order = {
+        id: 'order-1',
+        orderNumber: 'B-1234567890-123456',
+        type: OrderType.BUY,
+        status: OrderStatus.ORDERED,
+        product: { id: '1', name: 'product', purity: 99.9, price: 1000 },
+        quantity: 10,
+        totalPrice: 10000,
+      } as unknown as ProductOrder;
+
+      jest.spyOn(orderRepository, 'findOne').mockResolvedValue(order);
+
+      const result = await service.getOrderDetail('user-1', 'order-1');
+
+      expect(result).toEqual({
+        id: 'order-1',
+        orderNumber: 'B-1234567890-123456',
+        type: OrderType.BUY,
+        status: OrderStatus.ORDERED,
+        product: { id: '1', name: 'product', purity: 99.9, price: 1000 },
+        quantity: 10,
+        totalPrice: 10000,
+      });
+    });
+
+    it('주문자가 아니거나 order가 없는 경우 Not Found', async () => {
+      jest.spyOn(orderRepository, 'findOne').mockResolvedValue(null);
+
+      await expect(service.getOrderDetail('user-1', 'order-1')).rejects.toThrow(NotFoundException);
+    });
+  });
+
   describe('updateOrder', () => {
     it('주문자가 주문 상태를 변경하면 update 결과 반환', async () => {
       const updateOrderDto = { shippingAddress: 'address' } as UpdateOrderDto;
@@ -189,37 +223,29 @@ describe('OrderService', () => {
     });
   });
 
-  describe('getOrderDetail', () => {
-    it('올바른 주문자가 주문 번호로 조회하면 주문 상세정보 반환', async () => {
-      const order = {
-        id: 'order-1',
-        orderNumber: 'B-1234567890-123456',
-        type: OrderType.BUY,
-        status: OrderStatus.ORDERED,
-        product: { id: '1', name: 'product', purity: 99.9, price: 1000 },
-        quantity: 10,
-        totalPrice: 10000,
-      } as unknown as ProductOrder;
+  describe('deleteOrder', () => {
+    it('주문자가 주문을 취소하면 soft delete 한다', async () => {
+      const order = { id: 'order-1', userId: 'user-1', status: OrderStatus.ORDERED } as any as ProductOrder;
 
-      jest.spyOn(orderRepository, 'findOne').mockResolvedValue(order);
+      jest.spyOn(orderRepository, 'findOneBy').mockResolvedValue(order);
+      jest.spyOn(orderRepository, 'softRemove').mockResolvedValue({} as any);
 
-      const result = await service.getOrderDetail('user-1', 'order-1');
-
-      expect(result).toEqual({
-        id: 'order-1',
-        orderNumber: 'B-1234567890-123456',
-        type: OrderType.BUY,
-        status: OrderStatus.ORDERED,
-        product: { id: '1', name: 'product', purity: 99.9, price: 1000 },
-        quantity: 10,
-        totalPrice: 10000,
-      });
+      await service.deleteOrder('user-1', 'order-1');
+      expect(orderRepository.softRemove).toHaveBeenCalledWith(order);
     });
 
     it('주문자가 아니거나 order가 없는 경우 Not Found', async () => {
-      jest.spyOn(orderRepository, 'findOne').mockResolvedValue(null);
+      jest.spyOn(orderRepository, 'findOneBy').mockResolvedValue(null);
 
-      await expect(service.getOrderDetail('user-1', 'order-1')).rejects.toThrow(NotFoundException);
+      await expect(service.deleteOrder('user-1', 'order-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('주문 완료 상태가 아닐 경우 Bad Request', async () => {
+      const order = { id: 'order-1', userId: 'user-1', status: OrderStatus.SHIPPED } as any as ProductOrder;
+
+      jest.spyOn(orderRepository, 'findOneBy').mockResolvedValue(order);
+
+      await expect(service.deleteOrder('user-1', 'order-1')).rejects.toThrow(BadRequestException);
     });
   });
 
