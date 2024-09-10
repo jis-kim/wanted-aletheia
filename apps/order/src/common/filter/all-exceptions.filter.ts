@@ -1,6 +1,6 @@
 import { LoggerService } from '@app/logger';
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 import { ApiResponseDto } from '../../dto';
 
@@ -25,8 +25,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
     };
 
     this.logger.error(
-      `[${request.method}] ${request.url} ${status} - Error: ${JSON.stringify(errorResponse)}`,
+      `\n[${request.method}] ${request.url} ${status} - Error: ${JSON.stringify(errorResponse)}
+{
+  Headers: ${JSON.stringify(request.headers)}
+  Query: ${JSON.stringify(request.query)}
+  Params: ${JSON.stringify(request.params)}
+  Body: ${JSON.stringify(request.body)}
+  IP: ${request.ip}
+  User-Agent: ${request.get('user-agent')}
+}`,
       (exception as Error).stack,
+      'AllExceptionsFilter',
     );
 
     response.status(status).json(errorResponse);

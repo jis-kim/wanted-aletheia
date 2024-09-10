@@ -47,6 +47,16 @@ export class LoggerService implements NestLoggerService {
       format: fileFormat,
     });
 
+    const errorWarnTransport = new DailyRotateFile({
+      filename: `logs/${serviceName}-errors-%DATE%.log`,
+      datePattern: 'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize: '20m',
+      maxFiles: '30d',
+      level: 'warn', // warn 레벨 이상(warn과 error)만 기록
+      format: fileFormat,
+    });
+
     this.logger = winston.createLogger({
       level: process.env.LOG_LEVEL || process.env.NODE_ENV === 'production' ? 'info' : 'debug',
       transports: [
@@ -54,6 +64,7 @@ export class LoggerService implements NestLoggerService {
           format: consoleFormat,
         }),
         fileRotateTransport,
+        errorWarnTransport,
       ],
     });
   }
