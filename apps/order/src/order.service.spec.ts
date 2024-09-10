@@ -1,13 +1,14 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Entity, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderStatus, OrderType, ProductOrder } from './entity/product-order.entity';
 import { Product, TransactionPurpose } from './entity/product.entity';
 import { OrderService } from './order.service';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { SearchOrderDto } from './dto/order-search.dto';
 
 describe('OrderService', () => {
   let service: OrderService;
@@ -40,6 +41,7 @@ describe('OrderService', () => {
             update: jest.fn(),
             softRemove: jest.fn(),
             findOne: jest.fn(),
+            createQueryBuilder: jest.fn(),
           },
         },
         {
@@ -52,6 +54,91 @@ describe('OrderService', () => {
     service = module.get<OrderService>(OrderService);
     orderRepository = module.get<Repository<ProductOrder>>(getRepositoryToken(ProductOrder));
     productRepository = module.get<Repository<Product>>(getRepositoryToken(Product));
+  });
+
+  describe('searchOrder', () => {
+    it('사용자 ID와 검색 조건으로 주문을 검색하면 페이지네이션된 결과를 반환한다', async () => {
+      const userId = 'user-1';
+      const query = { limit: 10, offset: 0 };
+      const mockOrders = [{ id: 'order-1' }, { id: 'order-2' }];
+      const mockCount = 2;
+
+      const queryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([mockOrders, mockCount]),
+      };
+
+      jest.spyOn(orderRepository, 'createQueryBuilder').mockReturnValue(queryBuilder as any);
+
+      const result = await service.searchOrder(userId, query);
+
+      expect(result).toEqual({
+        orders: mockOrders,
+        pagination: {
+          total: mockCount,
+          limit: 10,
+          offset: 0,
+          currentPage: 1,
+          totalPages: 1,
+          links: expect.any(Object),
+        },
+      });
+    });
+
+    it('날짜 필터가 제공되면 해당 날짜의 주문만 반환한다', async () => {
+      const userId = 'user-1';
+      const query = { date: '2024-09-11', limit: 10, offset: 0 };
+      const mockOrders = [{ id: 'order-1', createdAt: new Date('2024-09-11') }];
+      const mockCount = 1;
+
+      const queryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([mockOrders, mockCount]),
+      };
+
+      jest.spyOn(orderRepository, 'createQueryBuilder').mockReturnValue(queryBuilder as any);
+
+      const result = await service.searchOrder(userId, query as any as SearchOrderDto);
+
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        'order.createdAt BETWEEN :startDate AND :endDate',
+        expect.any(Object),
+      );
+      expect(result.orders).toEqual(mockOrders);
+      expect(result.pagination.total).toBe(mockCount);
+    });
+
+    it('송장 유형 필터가 제공되면 해당 유형의 주문만 반환한다', async () => {
+      const userId = 'user-1';
+      const query = { invoiceType: OrderType.BUY, limit: 10, offset: 0 };
+      const mockOrders = [{ id: 'order-1', type: OrderType.BUY }];
+      const mockCount = 1;
+
+      const queryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([mockOrders, mockCount]),
+      };
+
+      jest.spyOn(orderRepository, 'createQueryBuilder').mockReturnValue(queryBuilder as any);
+
+      const result = await service.searchOrder(userId, query);
+
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith('order.type = :invoiceType', { invoiceType: OrderType.BUY });
+      expect(result.orders).toEqual(mockOrders);
+      expect(result.pagination.total).toBe(mockCount);
+    });
   });
 
   describe('createOrder', () => {
@@ -253,6 +340,59 @@ describe('OrderService', () => {
       jest.spyOn(orderRepository, 'findOneBy').mockResolvedValue(order);
 
       await expect(service.deleteOrder('user-1', 'order-1')).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('updateOrderStatus', () => {
+    it('유효한 상태 변경 요청이면 주문 상태를 업데이트하고 결과를 반환한다', async () => {
+      const userId = 'user-1';
+      const orderId = 'order-1';
+      const updateStatusDto = { status: OrderStatus.DEPOSITED };
+      const order = {
+        id: orderId,
+        userId,
+        type: OrderType.BUY,
+        status: OrderStatus.ORDERED,
+        orderNumber: 'B-1234567890-123456',
+      } as ProductOrder;
+
+      jest.spyOn(orderRepository, 'findOneBy').mockResolvedValue(order);
+      jest.spyOn(orderRepository, 'update').mockResolvedValue({} as any);
+
+      const result = await service.updateOrderStatus(userId, orderId, updateStatusDto);
+
+      expect(result).toEqual({
+        id: orderId,
+        orderNumber: 'B-1234567890-123456',
+        type: OrderType.BUY,
+        status: OrderStatus.DEPOSITED,
+      });
+    });
+
+    it('유효하지 않은 상태 변경 요청이면 BadRequestException을 발생시킨다', async () => {
+      const userId = 'user-1';
+      const orderId = 'order-1';
+      const updateStatusDto = { status: OrderStatus.SHIPPED };
+      const order = {
+        id: orderId,
+        userId,
+        type: OrderType.BUY,
+        status: OrderStatus.ORDERED,
+      } as ProductOrder;
+
+      jest.spyOn(orderRepository, 'findOneBy').mockResolvedValue(order);
+
+      await expect(service.updateOrderStatus(userId, orderId, updateStatusDto)).rejects.toThrow(BadRequestException);
+    });
+
+    it('주문을 찾을 수 없으면 NotFoundException을 발생시킨다', async () => {
+      const userId = 'user-1';
+      const orderId = 'non-existent-order';
+      const updateStatusDto = { status: OrderStatus.DEPOSITED };
+
+      jest.spyOn(orderRepository, 'findOneBy').mockResolvedValue(null);
+
+      await expect(service.updateOrderStatus(userId, orderId, updateStatusDto)).rejects.toThrow(NotFoundException);
     });
   });
 
