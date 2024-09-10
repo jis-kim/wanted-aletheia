@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import { Product } from './product.entity';
@@ -56,7 +57,9 @@ export class ProductOrder {
   @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.ORDERED })
   status: OrderStatus;
 
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   product: Product;
 
@@ -97,4 +100,7 @@ export class ProductOrder {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }
