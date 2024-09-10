@@ -1,11 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateOrderDto, CreateOrderResponseDto, OrderDetailResponseDto } from './dto';
-import { ProductOrder as Order } from './entity/product-order.entity';
+import { ProductOrder as Order, OrderStatus } from './entity/product-order.entity';
 import { Product } from './entity/product.entity';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { UpdateOrderResponseDto } from './dto/update-order-response.dto';
 
 @Injectable()
 export class OrderService {
@@ -75,25 +76,35 @@ export class OrderService {
   }
 
   /**
-   * 상태 외의 정보를 수정한다.
+   * 주문의 배송지 정보를 수정한다.
    *
    * @param userId
    * @param orderId
    * @param updateOrderDto
    * @returns
    */
-  async updateOrder(userId: string, orderId: string, updateOrderDto: UpdateOrderDto): Promise<void> {
+  async updateOrder(userId: string, orderId: string, updateOrderDto: UpdateOrderDto): Promise<UpdateOrderResponseDto> {
     const order = await this.orderRepository.findOneBy({ id: orderId, userId: userId });
     if (order === null) {
       throw new NotFoundException('Order not found');
     }
-    this.orderRepository.update(orderId, {
-      quantity: updateOrderDto.quantity,
+    if (order.status === OrderStatus.SHIPPED || order.status === OrderStatus.RECEIVED) {
+      throw new BadRequestException('Cannot update shipping information');
+    }
+
+    await this.orderRepository.update(orderId, {
       shippingAddress: updateOrderDto.shippingAddress,
       shippingName: updateOrderDto.shippingName,
       shippingPhone: updateOrderDto.shippingPhone,
       shippingMemo: updateOrderDto.shippingMemo,
     });
+
+    return {
+      order: {
+        ...order,
+        ...updateOrderDto,
+      },
+    };
   }
 
   // SECTION: private

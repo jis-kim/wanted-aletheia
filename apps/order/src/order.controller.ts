@@ -1,11 +1,12 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Res } from '@nestjs/common';
-import { ApiNotFoundResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiNotFoundResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { CreateOrderDto, CreateOrderResponseDto, OrderDetailResponseDto } from './dto';
 import { OrderService } from './order.service';
 import { Response } from 'express';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { CheckIsUUIDPipe } from './common/pipe/check-is-uuid.pipe';
+import { UpdateOrderResponseDto } from './dto/update-order-response.dto';
 
 @ApiTags('Order')
 @Controller('orders')
@@ -61,9 +62,14 @@ export class OrderController {
    *
    * @returns
    */
-  @ApiOperation({ description: '배송지 정보 등 한정적인 정보 수정 가능' })
+  @ApiOperation({ description: '배송지 관련 정보등 한정적인 정보만 수정 가능' })
+  @ApiNotFoundResponse({ description: 'order가 존재하지 않을 경우, order를 생성한 사용자가 아닐 경우' })
+  @ApiBadRequestResponse({ description: '이미 발송 완료, 혹은 수령 완료 상태일 경우' })
   @Patch(':id')
-  updateOrder(@Param('id', CheckIsUUIDPipe) orderId: string, @Body() updateOrderDto: UpdateOrderDto): Promise<void> {
+  updateOrder(
+    @Param('id', CheckIsUUIDPipe) orderId: string,
+    @Body() updateOrderDto: UpdateOrderDto,
+  ): Promise<UpdateOrderResponseDto> {
     const userId = 'f565b0c5-a02b-409c-beb5-052cc7088303';
     return this.orderService.updateOrder(userId, orderId, updateOrderDto);
   }

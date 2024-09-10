@@ -1,10 +1,7 @@
-import { PickType } from '@nestjs/swagger';
+import { PartialType, PickType } from '@nestjs/swagger';
 import { CreateOrderDto } from './create-order.dto';
 
-export class UpdateOrderDto extends PickType(CreateOrderDto, [
-  'quantity',
-  'shippingAddress',
-  'shippingName',
-  'shippingPhone',
-  'shippingMemo',
-]) {}
+// literal tuple type - readonly array of string literals
+const updateFields = ['shippingAddress', 'shippingName', 'shippingPhone', 'shippingMemo'] as const;
+
+export class UpdateOrderDto extends PartialType(PickType(CreateOrderDto, updateFields)) {}
