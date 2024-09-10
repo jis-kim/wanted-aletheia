@@ -107,6 +107,18 @@ export class OrderService {
     };
   }
 
+  async deleteOrder(userId: string, orderId: string): Promise<void> {
+    const order = await this.orderRepository.findOneBy({ id: orderId, userId: userId });
+    if (order === null) {
+      throw new NotFoundException('Order not found');
+    }
+    if (order.status !== OrderStatus.ORDERED) {
+      // 주문 완료 상태에서만 삭제 가능. 입금, 송금 후에는 삭제 불가
+      throw new BadRequestException('Cannot delete order in progress');
+    }
+    await this.orderRepository.softRemove(order);
+  }
+
   // SECTION: private
   private generateOrderNumber(type: string): string {
     const orderType = type === 'BUY' ? 'B' : 'S';

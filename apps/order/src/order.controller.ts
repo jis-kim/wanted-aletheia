@@ -80,9 +80,12 @@ export class OrderController {
    * @returns
    */
   @ApiOperation({ description: 'soft delete' })
+  @ApiNotFoundResponse({ description: 'order가 존재하지 않을 경우, order를 생성한 사용자가 아닐 경우' })
+  @ApiBadRequestResponse({ description: '주문 완료 이후의 상태일 경우' })
   @Delete(':id')
-  deleteOrder(): string {
-    return 'Delete Order';
+  deleteOrder(@Param('id', CheckIsUUIDPipe) orderId: string): Promise<void> {
+    const userId = 'f565b0c5-a02b-409c-beb5-052cc7088303';
+    return this.orderService.deleteOrder(userId, orderId);
   }
 
   /**
