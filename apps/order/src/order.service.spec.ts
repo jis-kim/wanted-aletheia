@@ -1,12 +1,13 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateOrderDto } from './dto/create-order.dto';
-import { OrderType, ProductOrder } from './entity/product-order.entity';
+import { OrderStatus, OrderType, ProductOrder } from './entity/product-order.entity';
 import { Product } from './entity/product.entity';
 import { OrderService } from './order.service';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 describe('OrderService', () => {
   let service: OrderService;
@@ -61,6 +62,50 @@ describe('OrderService', () => {
       jest.spyOn(productRepository, 'findOneBy').mockResolvedValue(null);
 
       await expect(service.createOrder('user-1', createOrderDto)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('updateOrder', () => {
+    it('주문자가 주문 상태를 변경하면 update 결과 반환', async () => {
+      const updateOrderDto = { shippingAddress: 'address' } as UpdateOrderDto;
+      const order = { id: 'order-1', userId: 'user-1', status: OrderStatus.ORDERED } as any as ProductOrder;
+
+      jest.spyOn(productOrderRepository, 'findOneBy').mockResolvedValue(order);
+      jest.spyOn(productOrderRepository, 'update').mockResolvedValue({} as any);
+
+      const result = await service.updateOrder('user-1', 'order-1', updateOrderDto);
+      expect(result).toEqual({
+        order: {
+          ...order,
+          ...updateOrderDto,
+        },
+      });
+    });
+
+    it('주문자가 아니거나 order가 없는 경우 Not Found', async () => {
+      const updateOrderDto = { shippingAddress: 'address' };
+
+      jest.spyOn(productOrderRepository, 'findOneBy').mockResolvedValue(null);
+
+      await expect(service.updateOrder('user-1', 'order-1', updateOrderDto)).rejects.toThrow(NotFoundException);
+    });
+
+    it('배송 완료 상태일 경우 Bad Request', async () => {
+      const updateOrderDto = { shippingAddress: 'address' };
+      const order = { id: 'order-1', userId: 'user-1', status: OrderStatus.SHIPPED } as any as ProductOrder;
+
+      jest.spyOn(productOrderRepository, 'findOneBy').mockResolvedValue(order);
+
+      await expect(service.updateOrder('user-1', 'order-1', updateOrderDto)).rejects.toThrow(BadRequestException);
+    });
+
+    it('수령 완료 상태일 경우 Bad Request', async () => {
+      const updateOrderDto = { shippingAddress: 'address' };
+      const order = { id: 'order-1', userId: 'user-1', status: OrderStatus.RECEIVED } as any as ProductOrder;
+
+      jest.spyOn(productOrderRepository, 'findOneBy').mockResolvedValue(order);
+
+      await expect(service.updateOrder('user-1', 'order-1', updateOrderDto)).rejects.toThrow(BadRequestException);
     });
   });
 
