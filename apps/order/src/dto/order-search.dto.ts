@@ -23,6 +23,7 @@ export class SearchOrderDto {
   @IsOptional()
   @IsInt()
   @Min(0)
+  @Max(2147483647)
   @Type(() => Number)
   offset?: number;
 

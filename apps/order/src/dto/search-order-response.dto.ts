@@ -1,13 +1,7 @@
-import { OmitType } from '@nestjs/swagger';
-
 import { OrderDto } from './order.dto';
+import { PaginationInfo } from './api-response.dto';
 
-export class SearchOrderResponseDto extends OmitType(OrderDto, [
-  'shippingAddress',
-  'shippingMemo',
-  'shippingName',
-  'shippingPhone',
-  'status',
-  'totalPrice',
-  'type',
-]) {}
+export class SearchOrderResponseDto {
+  orders: Omit<OrderDto, 'shippingAddress' | 'shippingMemo' | 'shippingName' | 'shippingPhone'>[];
+  pagination: PaginationInfo;
+}

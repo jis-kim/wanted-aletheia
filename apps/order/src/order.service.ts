@@ -10,6 +10,7 @@ import { UpdateStatusResponseDto } from './dto/update-status-response.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { ProductOrder as Order, OrderStatus, OrderType } from './entity/product-order.entity';
 import { Product, TransactionPurpose } from './entity/product.entity';
+import { SearchOrderResponseDto } from './dto/search-order-response.dto';
 
 @Injectable()
 export class OrderService {
@@ -21,9 +22,12 @@ export class OrderService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async searchOrder(userId: string, query: SearchOrderDto) {
+  async searchOrder(userId: string, query: SearchOrderDto): Promise<SearchOrderResponseDto> {
     const { date, invoiceType, limit = 10, offset = 0 } = query;
-    const queryBuilder = this.orderRepository.createQueryBuilder('order').where('order.userId = :userId', { userId });
+    const queryBuilder = this.orderRepository.createQueryBuilder('order');
+    queryBuilder
+      .select(['id', 'order_number', 'type', 'status', 'product_id', 'quantity', 'total_price', 'created_at'])
+      .where('order.userId = :userId', { userId });
 
     if (date !== undefined) {
       const startDate = new Date(date);
@@ -244,14 +248,17 @@ export class OrderService {
 
   private generatePaginationLinks(limit: number, offset: number, total: number): PaginationLinks {
     const currentPage = Math.floor(offset / limit) + 1;
-    const totalPages = Math.ceil(total / limit);
-
+    const totalPages = Math.max(1, Math.ceil(total / limit));
     const path = '/api/orders';
+
     return {
       first: `${path}?limit=${limit}&offset=0`,
-      last: `${path}?limit=${limit}&offset=${(totalPages - 1) * limit}`,
-      prev: currentPage > 1 ? `${path}?limit=${limit}&offset=${(currentPage - 2) * limit}` : null,
-      next: currentPage < totalPages ? `${path}?limit=${limit}&offset=${currentPage * limit}` : null,
+      last: `${path}?limit=${limit}&offset=${Math.max(0, (totalPages - 1) * limit)}`,
+      prev: currentPage > 1 ? `${path}?limit=${limit}&offset=${Math.max(0, (currentPage - 2) * limit)}` : null,
+      next:
+        currentPage < totalPages
+          ? `${path}?limit=${limit}&offset=${Math.min(currentPage * limit, (totalPages - 1) * limit)}`
+          : null,
     };
   }
 }

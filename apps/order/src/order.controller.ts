@@ -10,6 +10,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateStatusResponseDto } from './dto/update-status-response.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { OrderService } from './order.service';
+import { SearchOrderResponseDto } from './dto/search-order-response.dto';
 
 @ApiTags('Order')
 @Controller('orders')
@@ -23,7 +24,7 @@ export class OrderController {
    */
   @ApiOperation({ description: '쿼리에 따라 다른 주문 리스트를 가져온다.' })
   @Get()
-  getOrderList(@Query() query: SearchOrderDto) {
+  getOrderList(@Query() query: SearchOrderDto): Promise<SearchOrderResponseDto> {
     const userId = 'f565b0c5-a02b-409c-beb5-052cc7088303';
     return this.orderService.searchOrder(userId, query);
   }
@@ -37,10 +38,14 @@ export class OrderController {
    */
   @ApiNotFoundResponse({ description: 'product가 존재하지 않을 경우' })
   @Post()
-  async createOrder(@Body() createOrderDto: CreateOrderDto, @Res() response: Response): Promise<void> {
+  async createOrder(
+    @Body() createOrderDto: CreateOrderDto,
+    @Res() response: Response,
+  ): Promise<CreateOrderResponseDto> {
     const userId = 'f565b0c5-a02b-409c-beb5-052cc7088303';
     const result: CreateOrderResponseDto = await this.orderService.createOrder(userId, createOrderDto);
     response.header('Location', `/api/orders/${result.id}`).send(result);
+    return result;
   }
 
   /**

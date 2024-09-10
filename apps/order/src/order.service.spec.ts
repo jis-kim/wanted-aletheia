@@ -410,4 +410,66 @@ describe('OrderService', () => {
       expect(totalPrice).toBe(9455.5);
     });
   });
+
+  describe('generatePaginationLinks', () => {
+    it('첫 페이지에 대한 링크를 올바르게 생성한다', () => {
+      const links = service['generatePaginationLinks'](10, 0, 100);
+      expect(links).toEqual({
+        first: '/api/orders?limit=10&offset=0',
+        last: '/api/orders?limit=10&offset=90',
+        prev: null,
+        next: '/api/orders?limit=10&offset=10',
+      });
+    });
+
+    it('마지막 페이지에 대한 링크를 올바르게 생성한다', () => {
+      const links = service['generatePaginationLinks'](10, 90, 100);
+      expect(links).toEqual({
+        first: '/api/orders?limit=10&offset=0',
+        last: '/api/orders?limit=10&offset=90',
+        prev: '/api/orders?limit=10&offset=80',
+        next: null,
+      });
+    });
+
+    it('중간 페이지에 대한 링크를 올바르게 생성한다', () => {
+      const links = service['generatePaginationLinks'](10, 50, 100);
+      expect(links).toEqual({
+        first: '/api/orders?limit=10&offset=0',
+        last: '/api/orders?limit=10&offset=90',
+        prev: '/api/orders?limit=10&offset=40',
+        next: '/api/orders?limit=10&offset=60',
+      });
+    });
+
+    it('총 항목 수가 0일 때 올바른 링크를 생성한다', () => {
+      const links = service['generatePaginationLinks'](10, 0, 0);
+      expect(links).toEqual({
+        first: '/api/orders?limit=10&offset=0',
+        last: '/api/orders?limit=10&offset=0',
+        prev: null,
+        next: null,
+      });
+    });
+
+    it('총 항목 수가 limit보다 작을 때 올바른 링크를 생성한다', () => {
+      const links = service['generatePaginationLinks'](10, 0, 5);
+      expect(links).toEqual({
+        first: '/api/orders?limit=10&offset=0',
+        last: '/api/orders?limit=10&offset=0',
+        prev: null,
+        next: null,
+      });
+    });
+
+    it('총 페이지 수가 1일 때 올바른 링크를 생성한다', () => {
+      const links = service['generatePaginationLinks'](10, 0, 10);
+      expect(links).toEqual({
+        first: '/api/orders?limit=10&offset=0',
+        last: '/api/orders?limit=10&offset=0',
+        prev: null,
+        next: null,
+      });
+    });
+  });
 });
