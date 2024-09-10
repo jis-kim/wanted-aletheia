@@ -92,8 +92,8 @@ export class ProductOrder {
   @Column('varchar', { length: 32 })
   shippingPhone: string;
 
-  @Column('varchar', { length: 300 })
-  shippingMemo: string;
+  @Column('varchar', { length: 300, nullable: true })
+  shippingMemo: string | null;
 
   @CreateDateColumn()
   orderDate: Date;
@@ -101,6 +101,6 @@ export class ProductOrder {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ select: false })
   deletedAt: Date;
 }
