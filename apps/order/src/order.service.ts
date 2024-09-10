@@ -24,6 +24,7 @@ export class OrderService {
 
   async searchOrder(userId: string, query: SearchOrderDto): Promise<SearchOrderResponseDto> {
     const { date, invoiceType, limit = 10, offset = 0 } = query;
+
     const queryBuilder = this.orderRepository.createQueryBuilder('order');
     queryBuilder
       .select(['id', 'order_number', 'type', 'status', 'product_id', 'quantity', 'total_price', 'created_at'])

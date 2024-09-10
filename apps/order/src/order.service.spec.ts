@@ -64,6 +64,7 @@ describe('OrderService', () => {
       const mockCount = 2;
 
       const queryBuilder = {
+        select: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
@@ -96,6 +97,7 @@ describe('OrderService', () => {
       const mockCount = 1;
 
       const queryBuilder = {
+        select: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
@@ -123,6 +125,7 @@ describe('OrderService', () => {
       const mockCount = 1;
 
       const queryBuilder = {
+        select: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
