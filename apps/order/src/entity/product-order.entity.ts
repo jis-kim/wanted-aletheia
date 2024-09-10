@@ -76,23 +76,23 @@ export class ProductOrder {
   /**
    * 총 주문 금액
    */
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 18, scale: 2 })
   totalPrice: number;
 
   /**
    * 배송 정보
    * - 주소, 이름, 전화번호, 메모
    */
-  @Column('varchar', { length: 255 })
+  @Column('varchar', { length: 512 })
   shippingAddress: string;
 
   @Column('varchar', { length: 255 })
   shippingName: string;
 
-  @Column('varchar', { length: 255 })
+  @Column('varchar', { length: 32 })
   shippingPhone: string;
 
-  @Column('varchar', { length: 255 })
+  @Column('varchar', { length: 300 })
   shippingMemo: string;
 
   @CreateDateColumn()
