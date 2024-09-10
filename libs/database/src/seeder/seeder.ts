@@ -3,13 +3,21 @@ import path from 'path';
 import * as bcrypt from 'bcrypt';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
-import { ProductOrder, OrderStatus, OrderType } from '../../../../apps/api/src/entity/product-order.entity';
-import { Product, TransactionPurpose } from '../../../../apps/api/src/entity/product.entity';
 import { User } from '../../../../apps/auth/src/entity/user.entity';
+import { ProductOrder, OrderStatus, OrderType } from '../../../../apps/order/src/entity/product-order.entity';
+import { Product, TransactionPurpose } from '../../../../apps/order/src/entity/product.entity';
 
-async function createApiDataSource(): Promise<DataSource> {
-  config({ path: path.resolve(__dirname, '../../../../apps/api/.env') });
+function generateOrderNumber(type: string): string {
+  const orderType = type === 'BUY' ? 'B' : 'S';
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const randomNumber = Math.floor(Math.random() * 1000000);
+  return `${orderType}-${timestamp}-${randomNumber}`;
+}
+
+async function createOrderDataSource(): Promise<DataSource> {
+  config({ path: path.resolve(__dirname, '../../../../apps/order/.env') });
   return new DataSource({
     type: 'mariadb',
     host: process.env.MARIADB_HOST,
@@ -19,6 +27,7 @@ async function createApiDataSource(): Promise<DataSource> {
     database: process.env.MARIADB_DATABASE,
     entities: [Product, ProductOrder],
     synchronize: true,
+    namingStrategy: new SnakeNamingStrategy(),
   });
 }
 
@@ -33,6 +42,7 @@ async function createAuthDataSource(): Promise<DataSource> {
     database: process.env.MARIADB_DATABASE,
     entities: [User],
     synchronize: true,
+    namingStrategy: new SnakeNamingStrategy(),
   });
 }
 
@@ -110,9 +120,9 @@ async function seedProducts(dataSource: DataSource) {
   console.log('Products seeded successfully');
 }
 
-async function seedProductOrders(apiDataSource: DataSource, authDataSource: DataSource) {
-  const productOrderRepository = apiDataSource.getRepository(ProductOrder);
-  const productRepository = apiDataSource.getRepository(Product);
+async function seedProductOrders(orderDataSource: DataSource, authDataSource: DataSource) {
+  const productOrderRepository = orderDataSource.getRepository(ProductOrder);
+  const productRepository = orderDataSource.getRepository(Product);
 
   const userRepository = authDataSource.getRepository(User);
 
@@ -121,25 +131,25 @@ async function seedProductOrders(apiDataSource: DataSource, authDataSource: Data
 
   const orders = [
     {
-      orderNumber: 'ORD' + Date.now().toString().slice(-10),
       type: OrderType.BUY,
       userId: users[0].id,
       status: OrderStatus.ORDERED,
       product: products[0],
       quantity: 0.5,
       totalPrice: products[0].price * 0.5,
+      orderNumber: generateOrderNumber('BUY'),
       shippingAddress: '서울시 강남구',
       shippingName: '홍길동',
       shippingPhone: '010-1234-5678',
       shippingMemo: '부재시 경비실에 맡겨주세요',
     },
     {
-      orderNumber: 'ORD' + (Date.now() + 1).toString().slice(-10),
       type: OrderType.SELL,
       userId: users[1].id,
       status: OrderStatus.DEPOSITED,
       product: products[1],
       quantity: 1,
+      orderNumber: generateOrderNumber('BUY'),
       totalPrice: products[1].price,
       shippingAddress: '부산시 해운대구',
       shippingName: '김철수',
@@ -148,33 +158,33 @@ async function seedProductOrders(apiDataSource: DataSource, authDataSource: Data
     },
   ];
 
-  await productOrderRepository.save(orders);
+  await productOrderRepository.insert(orders);
 
   console.log('ProductOrders seeded successfully');
 }
 
 export async function seedAll() {
-  let apiDataSource: DataSource | null = null;
+  let orderDataSource: DataSource | null = null;
 
   let authDataSource: DataSource | null = null;
 
   try {
-    apiDataSource = await createApiDataSource();
-    await apiDataSource.initialize();
+    orderDataSource = await createOrderDataSource();
+    await orderDataSource.initialize();
 
     authDataSource = await createAuthDataSource();
     await authDataSource.initialize();
 
     await seedUsers(authDataSource);
-    await seedProducts(apiDataSource);
-    await seedProductOrders(apiDataSource, authDataSource);
+    await seedProducts(orderDataSource);
+    await seedProductOrders(orderDataSource, authDataSource);
 
     console.log('All seeding completed successfully');
   } catch (error) {
     console.error('Error during seeding:', error);
   } finally {
-    if (apiDataSource) {
-      await apiDataSource.destroy();
+    if (orderDataSource) {
+      await orderDataSource.destroy();
     }
 
     if (authDataSource) {

@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import { Product } from './product.entity';
@@ -56,7 +57,9 @@ export class ProductOrder {
   @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.ORDERED })
   status: OrderStatus;
 
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   product: Product;
 
@@ -73,24 +76,31 @@ export class ProductOrder {
   /**
    * 총 주문 금액
    */
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 18, scale: 2 })
   totalPrice: number;
 
-  @Column('varchar', { length: 255 })
+  /**
+   * 배송 정보
+   * - 주소, 이름, 전화번호, 메모
+   */
+  @Column('varchar', { length: 512 })
   shippingAddress: string;
 
   @Column('varchar', { length: 255 })
   shippingName: string;
 
-  @Column('varchar', { length: 255 })
+  @Column('varchar', { length: 32 })
   shippingPhone: string;
 
-  @Column('varchar', { length: 255 })
-  shippingMemo: string;
+  @Column('varchar', { length: 300, nullable: true })
+  shippingMemo: string | null;
 
   @CreateDateColumn()
-  orderDate: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn({ select: false })
+  deletedAt: Date;
 }

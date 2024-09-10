@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  OneToMany,
+} from 'typeorm';
+
+import { ProductOrder } from './product-order.entity';
 
 export enum TransactionPurpose {
   FOR_SALE = '판매용', // 판매자 입장에서 판매용 -> 소비자가 구매 가능
@@ -27,7 +37,7 @@ export class Product {
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2, select: false })
   stockAmount: number;
 
   @Column({
@@ -36,9 +46,17 @@ export class Product {
   })
   transactionPurpose: TransactionPurpose;
 
+  @OneToMany(() => ProductOrder, (productOrder) => productOrder.product, {
+    cascade: ['soft-remove'],
+  })
+  orders: ProductOrder[];
+
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn({ select: false })
+  deletedAt: Date;
 }
