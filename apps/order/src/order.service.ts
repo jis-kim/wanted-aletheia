@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateOrderDto, CreateOrderResponseDto, OrderDetailResponseDto } from './dto';
-import { ProductOrder as Order, OrderStatus } from './entity/product-order.entity';
-import { Product } from './entity/product.entity';
+import { ProductOrder as Order, OrderStatus, OrderType } from './entity/product-order.entity';
+import { Product, TransactionPurpose } from './entity/product.entity';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateOrderResponseDto } from './dto/update-order-response.dto';
 
@@ -23,24 +23,40 @@ export class OrderService {
     if (product === null) {
       throw new NotFoundException('Product not found');
     }
+    if (product.stockAmount < createOrderDto.quantity) {
+      throw new BadRequestException('Not enough quantity');
+    }
 
-    const orderNumber = this.generateOrderNumber(createOrderDto.type);
+    /**
+     * 주문 타입은 상품의 거래 목적에 따라 BUY, SELL로 결정된다.
+     * FOR_SALE  -> BUY, FOR_PURCHASE -> SELL
+     */
+    const type = product.transactionPurpose === TransactionPurpose.FOR_SALE ? OrderType.BUY : OrderType.SELL;
+
+    const orderNumber = this.generateOrderNumber(product.transactionPurpose);
     const totalPrice = this.calculateTotalPrice(product.price, createOrderDto.quantity);
 
-    const result = await this.orderRepository.insert({
-      ...createOrderDto,
-      userId,
-      productId: product.id,
-      totalPrice,
-      orderNumber,
-    });
+    return this.orderRepository.manager.transaction(async (transactionalEntityManager) => {
+      const result = await transactionalEntityManager.insert(Order, {
+        ...createOrderDto,
+        type,
+        userId,
+        productId: product.id,
+        totalPrice,
+        orderNumber,
+      });
 
-    return {
-      id: result.identifiers[0].id,
-      orderNumber,
-      status: result.generatedMaps[0].status,
-      totalPrice,
-    };
+      await transactionalEntityManager.update(Product, product.id, {
+        stockAmount: product.stockAmount - createOrderDto.quantity,
+      });
+      return {
+        id: result.identifiers[0].id,
+        orderNumber,
+        type,
+        status: result.generatedMaps[0].status,
+        totalPrice,
+      };
+    });
   }
 
   async getOrderDetail(userId: string, orderId: string): Promise<OrderDetailResponseDto> {

@@ -33,14 +33,10 @@ export class OrderController {
    */
   @ApiNotFoundResponse({ description: 'product가 존재하지 않을 경우' })
   @Post()
-  async createOrder(
-    @Body() createOrderDto: CreateOrderDto,
-    @Res() response: Response,
-  ): Promise<CreateOrderResponseDto> {
+  async createOrder(@Body() createOrderDto: CreateOrderDto, @Res() response: Response): Promise<void> {
     const userId = 'f565b0c5-a02b-409c-beb5-052cc7088303';
     const result = await this.orderService.createOrder(userId, createOrderDto);
-    response.header('Location', `/api/orders/${result.id}`);
-    return result;
+    response.header('Location', `/api/orders/${result.id}`).send(result);
   }
 
   /**

@@ -1,4 +1,4 @@
-import { OrderStatus } from '../entity/product-order.entity';
+import { OrderStatus, OrderType } from '../entity/product-order.entity';
 
 // POST /order API Response DTO
 export class CreateOrderResponseDto {
@@ -7,6 +7,8 @@ export class CreateOrderResponseDto {
   orderNumber: string;
 
   status: OrderStatus;
+
+  type: OrderType;
 
   totalPrice: number;
 }

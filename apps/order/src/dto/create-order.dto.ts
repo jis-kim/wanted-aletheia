@@ -1,14 +1,10 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsUUID, IsString, MaxLength, IsOptional } from 'class-validator';
+import { IsUUID, IsString, MaxLength, IsOptional } from 'class-validator';
 
 import { IsValidQuantity } from '../common/decorator/is-valid-quantity';
-import { OrderType } from '../entity/product-order.entity';
 
 // POST /order API Request DTO
 export class CreateOrderDto {
-  @IsEnum(OrderType)
-  type: OrderType;
-
   /**
    * 주문한 상품 ID
    * @example 6e6dc34f-8715-492f-b03b-03e25faadcb4
@@ -30,7 +26,7 @@ export class CreateOrderDto {
    * @example 서울시 강남구 테헤란로 427
    */
   @IsString()
-  @MaxLength(255)
+  @MaxLength(512)
   shippingAddress: string;
 
   /**
@@ -46,7 +42,7 @@ export class CreateOrderDto {
    * @example 010-1234-5678
    */
   @IsString()
-  @MaxLength(255)
+  @MaxLength(32)
   shippingPhone: string;
 
   /**
@@ -54,7 +50,7 @@ export class CreateOrderDto {
    * @example 문 앞에 놓아주세요
    */
   @IsString()
-  @MaxLength(255)
+  @MaxLength(300)
   @IsOptional()
   shippingMemo?: string;
 }
