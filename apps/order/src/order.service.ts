@@ -214,7 +214,8 @@ export class OrderService {
     const orderType = type === 'BUY' ? 'B' : 'S';
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const randomNumber = Math.floor(Math.random() * 1000000);
-    return `${orderType}-${timestamp}-${randomNumber}`;
+    const paddedNumber = String(randomNumber).padStart(6, '0');
+    return `${orderType}-${timestamp}-${paddedNumber}`;
   }
 
   private calculateTotalPrice(price: number, quantity: number): number {
