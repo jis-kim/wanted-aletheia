@@ -6,6 +6,8 @@ import { compare, hash } from 'bcryptjs';
 import { RegisterResponseDto } from './dto/register-response.dto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginResponseDto } from './dto/login-response.dto';
+import { RefreshResponseDto } from './dto/refresh-response.dto';
+import { TokenPayload } from './type/token-payload.type';
 
 @Injectable()
 export class AuthService {
@@ -52,7 +54,7 @@ export class AuthService {
       where: { username },
     });
     if (user && (await compare(password, user.password))) {
-      const payload = { username: user.username, sub: user.id };
+      const payload: TokenPayload = { username: user.username, sub: user.id, name: user.name };
       const accessToken = this.jwtService.sign(payload, { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN });
       const refreshToken = this.jwtService.sign(payload, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN });
 
@@ -71,5 +73,27 @@ export class AuthService {
       };
     }
     throw new UnauthorizedException('Invalid credentials');
+  }
+
+  async refresh(token: string): Promise<RefreshResponseDto> {
+    // token 유효성 검증
+    let payload: TokenPayload;
+    try {
+      payload = this.jwtService.verify(token);
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    const user = await this.usersRepository.findOne({ select: ['refreshToken'], where: { id: payload.sub } });
+    if (user && user.refreshToken === token) {
+      const newAccessToken = this.jwtService.sign(
+        { username: payload.username, sub: payload.sub, name: payload.name },
+        { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN },
+      );
+      return {
+        accessToken: newAccessToken,
+      };
+    }
+    throw new UnauthorizedException('Invalid token');
   }
 }
