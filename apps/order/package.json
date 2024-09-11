@@ -1,16 +1,19 @@
 {
-  "name": "api",
+  "name": "order",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:prod": "node ../../dist/apps/order/main.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@nestjs/config": "^3.2.3",
     "@nestjs/typeorm": "^10.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "mysql2": "^3.11.0",
     "typeorm": "^0.3.20"
   }

@@ -1,3 +1,5 @@
+const { types } = require('util');
+
 module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -6,13 +8,19 @@ module.exports = {
     sourceType: 'module',
   },
   plugins: ['@typescript-eslint/eslint-plugin', 'import'],
-  extends: ['plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended', 'plugin:import/recommended'],
+  extends: [
+    'plugin:@typescript-eslint/recommended',
+    'plugin:prettier/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
+  ],
+
   root: true,
   env: {
     node: true,
     jest: true,
   },
-  ignorePatterns: ['.eslintrc.js'],
+  ignorePatterns: ['.eslintrc.js', '**/*spec.ts'],
   rules: {
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
@@ -32,7 +40,7 @@ module.exports = {
     ],
     'prettier/prettier': ['error', { endOfLine: 'auto' }],
     '@typescript-eslint/explicit-function-return-type': ['warn', { allowExpressions: true }], // 함수의 반환 타입 명시
-    '@typescript-eslint/no-explicit-any': 'error', // any 사용시 경고
+    '@typescript-eslint/no-explicit-any': 'warn', // any 사용시 경고
     'no-else-return': 'warn', // else 뒤에 바로 return 경고
     'import/order': [
       // import 순서 정렬
