@@ -4,7 +4,7 @@ services:
     container_name: order-db
     env_file: ./apps/order/.env
     ports:
-      - '3306:3306'
+      - '${ORDER_DB_PORT:-3306}:3306'
     volumes:
       - order_db:/var/lib/mysql
     healthcheck:
@@ -18,7 +18,7 @@ services:
     container_name: auth-db
     env_file: ./apps/auth/.env
     ports:
-      - '3307:3306'
+      - '${AUTH_DB_PORT:-3307}:3306'
     volumes:
       - auth_db:/var/lib/mysql
     healthcheck:

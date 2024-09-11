@@ -4,13 +4,13 @@ import { Repository } from 'typeorm';
 
 import { CreateOrderDto, CreateOrderResponseDto, OrderDetailResponseDto, PaginationLinks } from './dto';
 import { SearchOrderDto } from './dto/order-search.dto';
+import { SearchOrderResponseDto } from './dto/search-order-response.dto';
 import { UpdateOrderResponseDto } from './dto/update-order-response.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateStatusResponseDto } from './dto/update-status-response.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { ProductOrder as Order, OrderStatus, OrderType } from './entity/product-order.entity';
 import { Product, TransactionPurpose } from './entity/product.entity';
-import { SearchOrderResponseDto } from './dto/search-order-response.dto';
 
 @Injectable()
 export class OrderService {
@@ -214,7 +214,8 @@ export class OrderService {
     const orderType = type === 'BUY' ? 'B' : 'S';
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const randomNumber = Math.floor(Math.random() * 1000000);
-    return `${orderType}-${timestamp}-${randomNumber}`;
+    const paddedNumber = String(randomNumber).padStart(6, '0');
+    return `${orderType}-${timestamp}-${paddedNumber}`;
   }
 
   private calculateTotalPrice(price: number, quantity: number): number {
