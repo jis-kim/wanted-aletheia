@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  Index,
+} from 'typeorm';
 
 @Entity()
 export class User {
@@ -8,6 +16,7 @@ export class User {
   /**
    * login 시 사용할 username
    */
+  @Index()
   @Column({ length: 128, unique: true })
   username: string;
 
