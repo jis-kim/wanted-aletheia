@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { RefreshResponseDto } from './dto/refresh-response.dto';
 import { TokenPayload } from './type/token-payload.type';
+import { LoggerService } from '@app/logger';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +16,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly logger: LoggerService,
   ) {}
 
   async register(username: string, email: string, name: string, password: string): Promise<RegisterResponseDto> {
@@ -61,6 +63,7 @@ export class AuthService {
       user.refreshToken = refreshToken;
       await this.usersRepository.update(user.id, { refreshToken });
 
+      this.logger.log(`User ${user.username} logged in.`);
       return {
         accessToken,
         refreshToken,
@@ -72,6 +75,7 @@ export class AuthService {
         },
       };
     }
+    this.logger.warn(`Failed login attempt for user: ${username}`);
     throw new UnauthorizedException('Invalid credentials');
   }
 
