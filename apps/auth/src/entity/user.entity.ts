@@ -23,7 +23,7 @@ export class User {
   @Column({ length: 255, select: false })
   password: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ length: 255, nullable: true, select: false })
   refreshToken: string;
 
   @CreateDateColumn()

@@ -5,9 +5,18 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { User } from './entity/user.entity';
+import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [DatabaseModule.forRoot('apps/auth/.env', [User]), LoggerModule],
+  imports: [
+    DatabaseModule.forRoot('apps/auth/.env', [User]),
+    TypeOrmModule.forFeature([User]),
+    LoggerModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+    }),
+  ],
   controllers: [AuthController],
   providers: [AuthService],
 })

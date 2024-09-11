@@ -24,6 +24,6 @@ async function bootstrap() {
   app.useLogger(logger);
   app.useGlobalInterceptors(new LoggerInterceptor(logger));
 
-  await app.listen(3001);
+  await app.listen(process.env.REST_API_PORT || 3001);
 }
 bootstrap();

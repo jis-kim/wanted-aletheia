@@ -1,13 +1,15 @@
-import { Controller, Get } from '@nestjs/common';
-
+import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { ApiTags } from '@nestjs/swagger';
+import { RegisterDto } from './dto/register.dto';
 
-@Controller()
+@ApiTags('auth')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get()
-  getHello(): string {
-    return this.authService.getHello();
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto.username, registerDto.email, registerDto.name, registerDto.password);
   }
 }
