@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { User } from './entity/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     JwtModule.register({
       secret: process.env.JWT_SECRET,
     }),
+    ConfigModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

@@ -1,4 +1,5 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { GrpcMethod } from '@nestjs/microservices';
 import { AuthService } from './auth.service';
 import { ApiConflictResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
@@ -46,5 +47,16 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Body() { refreshToken }: RefreshDto): Promise<RefreshResponseDto> {
     return this.authService.refresh(refreshToken);
+  }
+
+  /**
+   * grpc 통신으로 받은 access token 유효성 검사
+   *
+   * @param data
+   * @returns
+   */
+  @GrpcMethod('AuthService', 'ValidateAccessToken')
+  async validateAccessToken(data: { accessToken: string }) {
+    return this.authService.validateAccessToken(data.accessToken);
   }
 }

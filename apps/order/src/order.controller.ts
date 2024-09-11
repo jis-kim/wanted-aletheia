@@ -1,5 +1,12 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiNotFoundResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiNotFoundResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Response } from 'express';
 
 import { CheckIsUUIDPipe } from './common/pipe/check-is-uuid.pipe';
@@ -12,6 +19,7 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 import { OrderService } from './order.service';
 import { SearchOrderResponseDto } from './dto/search-order-response.dto';
 
+@ApiBearerAuth()
 @ApiTags('Order')
 @Controller('orders')
 export class OrderController {

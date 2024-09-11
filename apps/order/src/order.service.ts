@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -11,6 +11,7 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 import { ProductOrder as Order, OrderStatus, OrderType } from './entity/product-order.entity';
 import { Product, TransactionPurpose } from './entity/product.entity';
 import { SearchOrderResponseDto } from './dto/search-order-response.dto';
+import { ClientGrpc } from '@nestjs/microservices';
 
 @Injectable()
 export class OrderService {

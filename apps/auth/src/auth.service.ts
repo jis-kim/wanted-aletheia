@@ -100,4 +100,20 @@ export class AuthService {
     }
     throw new UnauthorizedException('Invalid token');
   }
+
+  async validateAccessToken(token: string) {
+    try {
+      const payload = this.jwtService.verify(token);
+      return {
+        isValid: true,
+        payload: {
+          sub: payload.sub,
+          username: payload.username,
+          name: payload.name,
+        },
+      };
+    } catch (error) {
+      return { isValid: false, userId: '' };
+    }
+  }
 }
