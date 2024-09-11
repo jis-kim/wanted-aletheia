@@ -1,17 +1,17 @@
 import { DatabaseModule } from '@app/database';
 import { LoggerModule } from '@app/logger';
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { GrpcAuthGuard } from './common/guard/grpc-auth.guard';
 import { ProductOrder } from './entity/product-order.entity';
 import { Product } from './entity/product.entity';
+import { GrpcAuthService } from './grpc-auth.service';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { GrpcAuthService } from './grpc-auth.service';
-import { GrpcAuthGuard } from './common/guard/grpc-auth.guard';
-import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [

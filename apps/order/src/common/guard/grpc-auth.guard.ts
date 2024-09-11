@@ -1,6 +1,7 @@
 // grpc-auth.guard.ts
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { catchError, map, Observable } from 'rxjs';
+
 import { GrpcAuthService } from '../../grpc-auth.service';
 
 @Injectable()
@@ -28,9 +29,8 @@ export class GrpcAuthGuard implements CanActivate {
           const { payload } = response;
           request.user = payload;
           return true;
-        } else {
-          throw new UnauthorizedException('Invalid access token');
         }
+        throw new UnauthorizedException('Invalid access token');
       }),
       catchError((error) => {
         console.error('Token validation error:', error);

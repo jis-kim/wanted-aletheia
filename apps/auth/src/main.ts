@@ -1,11 +1,11 @@
 import { LoggerService } from '@app/logger';
 import { LoggerInterceptor } from '@app/logger/logger.interceptor';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AuthModule } from './auth.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { ConfigService } from '@nestjs/config';
 
 const config = new DocumentBuilder()
   .setTitle('Aletheia API')

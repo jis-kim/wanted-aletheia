@@ -1,13 +1,13 @@
 import { LoggerService } from '@app/logger';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AllExceptionsFilter } from './common/filter/all-exceptions.filter';
 import { ApiResponseInterceptor } from './common/interceptor/api-response.interceptor';
 import { OrderModule } from './order.module';
-import { ConfigService } from '@nestjs/config';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 const config = new DocumentBuilder()
   .setTitle('Aletheia API')

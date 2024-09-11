@@ -1,14 +1,15 @@
+import { LoggerService } from '@app/logger';
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from './entity/user.entity';
-import { compare, hash } from 'bcryptjs';
-import { RegisterResponseDto } from './dto/register-response.dto';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { compare, hash } from 'bcryptjs';
+import { Repository } from 'typeorm';
+
 import { LoginResponseDto } from './dto/login-response.dto';
 import { RefreshResponseDto } from './dto/refresh-response.dto';
+import { RegisterResponseDto } from './dto/register-response.dto';
+import { User } from './entity/user.entity';
 import { TokenPayload } from './type/token-payload.type';
-import { LoggerService } from '@app/logger';
 
 @Injectable()
 export class AuthService {

@@ -1,3 +1,3 @@
-export class validateAccessTokenDto {
+export class ValidateAccessTokenDto {
   accessToken: string;
 }

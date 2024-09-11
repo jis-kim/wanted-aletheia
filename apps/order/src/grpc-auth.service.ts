@@ -1,6 +1,7 @@
-import { Inject, Injectable, OnModuleInit, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
+
 import { ValidateAccessTokenResponseDto } from './dto/validate-access-token-response.dto';
 
 interface AuthService {
