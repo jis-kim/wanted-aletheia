@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   DeleteDateColumn,
+  Index,
 } from 'typeorm';
 
 import { Product } from './product.entity';
@@ -51,6 +52,7 @@ export class ProductOrder {
    * 주문한 유저 ID (key)
    * 서버 B의 유저 ID를 참조 (UUID 형태 유지)
    */
+  @Index()
   @Column('varchar', { length: 36 })
   userId: string; // 서버 B의 유저 ID를 참조 (UUID 형태 유지)
 
