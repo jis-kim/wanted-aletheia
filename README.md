@@ -30,6 +30,7 @@ pnpm run start:docker
 
 ### DB container 실행
 
+- 연결할 DB가 없을 경우, 다음 명령어로 DB container를 실행합니다.
 - Docker, docker compose 가 설치되어 있어야 합니다.
 - root 폴더에서 다음 명령어를 실행합니다.
 
