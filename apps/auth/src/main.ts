@@ -20,6 +20,7 @@ async function bootstrap() {
   });
   const configService = app.get(ConfigService);
   const grpcPort = configService.get<number>('GRPC_PORT', 50051);
+  const grpcHost = configService.get<string>('GRPC_HOST', '0.0.0.0');
 
   // gRPC 마이크로서비스 설정
   app.connectMicroservice<MicroserviceOptions>({
@@ -27,18 +28,19 @@ async function bootstrap() {
     options: {
       package: 'auth',
       protoPath: 'proto/auth.proto',
-      url: `0.0.0.0:${grpcPort}`, // gRPC 포트 설정
+      url: `${grpcHost}:${grpcPort}`, // server listen
     },
   });
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
 
   const logger = app.get(LoggerService);
   app.useLogger(logger);
   app.useGlobalInterceptors(new LoggerInterceptor(logger));
+  app.setGlobalPrefix('api');
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document);
 
   await app.startAllMicroservices();
-  await app.listen(configService.get<number>('REST_API_PORT', 3001));
+  await app.listen(configService.get<number>('REST_API_PORT', 8888));
 }
 bootstrap();

@@ -104,6 +104,7 @@ export class AuthService {
   async validateAccessToken(token: string) {
     try {
       const payload = this.jwtService.verify(token);
+      this.logger.log('validateAccessToken success', 'GRPC');
       return {
         isValid: true,
         payload: {
@@ -113,6 +114,7 @@ export class AuthService {
         },
       };
     } catch (error) {
+      this.logger.error('validateAccessToken failed', error, 'GRPC');
       return { isValid: false, userId: '' };
     }
   }

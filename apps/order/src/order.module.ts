@@ -8,7 +8,7 @@ import { Product } from './entity/product.entity';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GrpcAuthService } from './grpc-auth.service';
 import { GrpcAuthGuard } from './common/guard/grpc-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
@@ -17,15 +17,19 @@ import { APP_GUARD } from '@nestjs/core';
   imports: [
     DatabaseModule.forRoot('apps/order/.env', [Product, ProductOrder]),
     TypeOrmModule.forFeature([Product, ProductOrder]),
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: 'AUTH_PACKAGE',
-        transport: Transport.GRPC,
-        options: {
-          package: 'auth',
-          protoPath: 'proto/auth.proto',
-          url: `localhost:50051`,
-        },
+        imports: [ConfigModule],
+        useFactory: async (configService: ConfigService) => ({
+          transport: Transport.GRPC,
+          options: {
+            package: 'auth',
+            protoPath: 'proto/auth.proto',
+            url: `${configService.get<string>('GRPC_REQUEST_HOST', 'localhost')}:${configService.get<number>('GRPC_REQUEST_PORT', 50051)}`,
+          },
+        }),
+        inject: [ConfigService],
       },
     ]),
     ConfigModule,
